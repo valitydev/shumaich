@@ -13,6 +13,7 @@ import org.apache.kafka.common.errors.WakeupException;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -20,19 +21,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SimpleTopicConsumer<K, V> implements Runnable {
 
-    private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final KafkaConsumer<K, V> consumer;
+    private AtomicBoolean alive = new AtomicBoolean(true);
+    private KafkaConsumer<K, V> consumer;
+
+    private final Map<String, Object> consumerProps;
     private final List<TopicPartition> assignedPartitions;
     private final KafkaOffsetDao kafkaOffsetDao;
     private final Handler<V> handler;
     private final Long pollingTimeout;
+
+    public static <K, V> SimpleTopicConsumer<K, V> of(SimpleTopicConsumer<K, V> otherConsumer) {
+        return new SimpleTopicConsumer<>(
+                otherConsumer.consumerProps,
+                otherConsumer.assignedPartitions,
+                otherConsumer.kafkaOffsetDao,
+                otherConsumer.handler,
+                otherConsumer.pollingTimeout
+        );
+    }
+
+    public boolean isAlive() {
+        return alive.get();
+    }
 
     @Override
     public void run() {
         try {
             initConsumer();
 
-            while (!closed.get()) {
+            while (alive.get()) {
                 ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollingTimeout));
                 handler.handle(records);
                 saveOffsets(records);
@@ -40,23 +57,24 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
         } catch (WakeupException e) {
             // Ignore exception if closing
-            //todo do we need to save offsets here?
-            if (!closed.get()) {
-                throw e;
+            if (alive.get()) {
+                log.error("External wakeup call occurred", e);
             }
         } catch (Exception e) {
-            //todo do we need to save offsets here?
-            log.error("Some error during Kafka polling", e);
+            log.error("Error during Kafka polling", e);
         } finally {
             consumer.close();
         }
     }
 
     public void shutdown() {
-        closed.set(true);
+        log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
+        alive.set(false);
+        consumer.wakeup();
     }
 
     private void initConsumer() {
+        consumer = new KafkaConsumer<>(consumerProps);
         consumer.assign(assignedPartitions);
         List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(assignedPartitions);
         kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
