@@ -81,7 +81,7 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
-                        clientStoreCertPath, keyStorePassword, keyPassword));
+                clientStoreCertPath, keyStorePassword, keyPassword));
         return props;
     }
 
@@ -115,11 +115,14 @@ public class KafkaConfiguration {
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }
+
     @Bean
     AdminClient kafkaAdminClient() {
-        return AdminClient.create(Map.of(
-                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers
-        ));
+        Map<String, Object> props = new HashMap<>();
+        props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
+                clientStoreCertPath, keyStorePassword, keyPassword));
+        return AdminClient.create(props);
     }
 
     @Bean
@@ -141,7 +144,7 @@ public class KafkaConfiguration {
                 kafkaOffsetDao,
                 handler,
                 pollingTimeout
-                );
+        );
     }
 
     @Bean
@@ -163,7 +166,7 @@ public class KafkaConfiguration {
                 kafkaOffsetDao,
                 handler,
                 pollingTimeout
-                );
+        );
     }
 
     public static Map<String, Object> sslConfigure(Boolean kafkaSslEnable, String serverStoreCertPath, String serverStorePassword,
