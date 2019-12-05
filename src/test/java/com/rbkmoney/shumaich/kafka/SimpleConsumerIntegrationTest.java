@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
@@ -72,7 +71,6 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void testCreationAndInteraction() throws InterruptedException {
         requestLogKafkaTemplate.sendDefault(TestData.requestLog());
 
@@ -80,7 +78,6 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     public void offsetsLoadedOnStartup() throws ExecutionException, InterruptedException {
         setInitialOffsets(10L);
 
@@ -97,7 +94,7 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
         }
 
         //waiting consumers to wake up
-        Thread.sleep(4000);
+        Thread.sleep(3000);
 
         //we skipped 10 messages, assuming to have 10 more in partition 0
         Assert.assertEquals(10, receivedRecordsSize.get());
