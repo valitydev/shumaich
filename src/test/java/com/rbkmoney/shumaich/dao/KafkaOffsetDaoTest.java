@@ -2,18 +2,17 @@ package com.rbkmoney.shumaich.dao;
 
 import com.rbkmoney.shumaich.RedisTestBase;
 import com.rbkmoney.shumaich.TestData;
+import com.rbkmoney.shumaich.TestUtils;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @ContextConfiguration(classes = {KafkaOffsetDao.class})
@@ -27,10 +26,7 @@ public class KafkaOffsetDaoTest extends RedisTestBase {
 
     @After
     public void cleanUp() {
-        HashOperations<String, Object, Object> hashOps = kafkaOffsetRedisTemplate.opsForHash();
-        Map<Object, Object> entries = hashOps.entries("kafka_offsets");
-        entries.replaceAll((key, value) -> null);
-        hashOps.putAll("kafka_offsets", entries);
+        TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
     }
 
     @Test

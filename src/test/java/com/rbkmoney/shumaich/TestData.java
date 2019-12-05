@@ -11,6 +11,8 @@ import java.util.List;
 public class TestData {
 
     public static final String TEST_TOPIC = "test-topic";
+    public static final String OPERATION_LOG_TOPIC = "operation_log";
+    public static final String REQUEST_LOG_TOPIC = "request_log";
 
     public static RequestLog requestLog() {
         return RequestLog.builder()
@@ -22,7 +24,13 @@ public class TestData {
 
     public static OperationLog operationLog() {
         return OperationLog.builder()
+                .build();
+    }
 
+    public static KafkaOffset kafkaOffset(String topicName, Integer partition, Long offset) {
+        return KafkaOffset.builder()
+                .topicPartition(new TopicPartition(topicName, partition))
+                .offset(offset)
                 .build();
     }
 

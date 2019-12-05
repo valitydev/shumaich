@@ -3,8 +3,9 @@ package com.rbkmoney.shumaich.kafka;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.PartitionInfo;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PostConstruct;
@@ -23,12 +24,13 @@ public class TopicConsumptionManager<K, V> {
     private final ExecutorService executorService;
     private final List<SimpleTopicConsumer<K, V>> consumers = new ArrayList<>();
 
-    public TopicConsumptionManager(List<PartitionInfo> topicPartitions,
+    public TopicConsumptionManager(TopicDescription topicDescription,
                                    Integer partitionsPerThread,
                                    Map<String, Object> consumerProps,
                                    KafkaOffsetDao kafkaOffsetDao,
                                    Handler<V> handler,
                                    Long pollingTimeout) {
+        List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
         int consumersAmount = topicPartitions.size() / partitionsPerThread;
         if (topicPartitions.size() % partitionsPerThread != 0) {
             consumersAmount++;
@@ -39,7 +41,7 @@ public class TopicConsumptionManager<K, V> {
             consumers.add(
                     new SimpleTopicConsumer<>(
                             consumerProps,
-                            calculateAssignedPartitions(partitionsPerThread, topicPartitions, i),
+                            calculateAssignedPartitions(partitionsPerThread, topicDescription, i),
                             kafkaOffsetDao,
                             handler,
                             pollingTimeout
@@ -76,12 +78,12 @@ public class TopicConsumptionManager<K, V> {
     }
 
     private List<TopicPartition> calculateAssignedPartitions(Integer partitionsPerThread,
-                                                             List<PartitionInfo> partitionsInfo,
+                                                             TopicDescription topicDescription,
                                                              int i) {
-        return partitionsInfo.subList(i * partitionsPerThread, (i + 1) * partitionsPerThread)
+        return topicDescription.partitions().subList(i * partitionsPerThread, (i + 1) * partitionsPerThread)
                 .stream()
                 .map(partitionInfo -> new TopicPartition(
-                        partitionInfo.topic(),
+                        topicDescription.name(),
                         partitionInfo.partition()))
                 .collect(Collectors.toList());
     }

@@ -11,8 +11,10 @@ import com.rbkmoney.shumaich.kafka.serde.RequestLogSerializer;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.admin.AdminClient;
+import org.apache.kafka.clients.admin.AdminClientConfig;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -25,7 +27,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Configuration
 @RequiredArgsConstructor
@@ -111,13 +115,27 @@ public class KafkaConfiguration {
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }
+    @Bean
+    AdminClient kafkaAdminClient() {
+        return AdminClient.create(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers
+        ));
+    }
 
     @Bean
-    public TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager(KafkaOffsetDao kafkaOffsetDao,
-                                                                                         Handler<RequestLog> handler) {
+    public TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager(AdminClient kafkaAdminClient,
+                                                                                         KafkaOffsetDao kafkaOffsetDao,
+                                                                                         Handler<RequestLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestLogDeserializer.class);
-        return new TopicConsumptionManager<>(new KafkaConsumer<>(consumerProps).partitionsFor(requestLogTopicName),
+
+        TopicDescription topicDescription = kafkaAdminClient
+                .describeTopics(List.of(requestLogTopicName))
+                .values()
+                .get(requestLogTopicName)
+                .get();
+
+        return new TopicConsumptionManager<>(topicDescription,
                 partitionsPerThread,
                 consumerProps,
                 kafkaOffsetDao,
@@ -127,11 +145,19 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(KafkaOffsetDao kafkaOffsetDao,
-                                                                                             Handler<OperationLog> handler) {
+    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
+                                                                                             KafkaOffsetDao kafkaOffsetDao,
+                                                                                             Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
-        return new TopicConsumptionManager<>(new KafkaConsumer<>(consumerProps).partitionsFor(operationLogTopicName),
+
+        TopicDescription topicDescription = kafkaAdminClient
+                .describeTopics(List.of(operationLogTopicName))
+                .values()
+                .get(operationLogTopicName)
+                .get();
+
+        return new TopicConsumptionManager<>(topicDescription,
                 partitionsPerThread,
                 consumerProps,
                 kafkaOffsetDao,

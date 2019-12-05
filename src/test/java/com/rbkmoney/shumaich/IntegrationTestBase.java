@@ -1,33 +1,24 @@
 package com.rbkmoney.shumaich;
 
 
-import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
-import com.rbkmoney.shumaich.kafka.serde.RequestLogDeserializer;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Properties;
+import static com.rbkmoney.shumaich.TestData.OPERATION_LOG_TOPIC;
+import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
 
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = ShumaichApplication.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public abstract class IntegrationTestBase {
 
@@ -35,6 +26,10 @@ public abstract class IntegrationTestBase {
 
     @ClassRule
     public static KafkaContainer kafka = new KafkaContainer(CONFLUENT_PLATFORM_VERSION).withEmbeddedZookeeper();
+
+    static {
+        createKafkaTopics();
+    }
 
     @ClassRule
     public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
@@ -48,30 +43,22 @@ public abstract class IntegrationTestBase {
                             "redis.host=" + redis.getContainerIpAddress(),
                             "redis.port=" + redis.getMappedPort(6379))
                     .applyTo(configurableApplicationContext.getEnvironment());
-            initTopic("request_log", RequestLogDeserializer.class);
-            initTopic("operation_log", OperationLogDeserializer.class);
         }
 
-        private void initTopic(String topicName, Class<?> clazz) {
-            Consumer<?, ?> consumer = createConsumer(clazz);
-            try {
-                consumer.subscribe(Collections.singletonList(topicName));
-                consumer.poll(Duration.ofMillis(100L));
-            } catch (Exception e) {
-                log.error("KafkaAbstractTest initialize e: ", e);
-            }
-            consumer.close();
-        }
     }
 
-    static <T> Consumer<String, T> createConsumer(Class<?> clazz) {
-        Properties props = new Properties();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, clazz);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "test");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        return new KafkaConsumer<>(props);
+    private static void createKafkaTopics() {
+        try {
+            kafka.start();
+            kafka.execInContainer("/bin/sh", "-c", String.format(
+                    "/usr/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1" +
+                            " --partitions 10 --topic %s", REQUEST_LOG_TOPIC));
+            kafka.execInContainer("/bin/sh", "-c", String.format(
+                    "/usr/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1" +
+                            " --partitions 10 --topic %s", OPERATION_LOG_TOPIC));
+        } catch (Exception e) {
+            System.err.println("kek");
+        }
     }
 
 }

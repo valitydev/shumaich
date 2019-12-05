@@ -33,7 +33,7 @@ kafka:
     server-keystore-location: src/main/resources/cert/truststore.p12
   topics:
     consumer-monitor-rate: 3000
-    partitions-per-thread: 1
+    partitions-per-thread: 2
     polling-timeout: 10000
     request-log-name: "request_log"
     operation-log-name: "operation_log"

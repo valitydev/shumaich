@@ -51,8 +51,10 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
             while (alive.get()) {
                 ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollingTimeout));
-                handler.handle(records);
-                saveOffsets(records);
+                if (records.count() > 0) {
+                    handler.handle(records);
+                    saveOffsets(records);
+                }
             }
 
         } catch (WakeupException e) {
