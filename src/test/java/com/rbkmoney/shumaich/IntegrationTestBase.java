@@ -29,7 +29,7 @@ import java.util.Properties;
 @SpringBootTest(classes = ShumaichApplication.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
-public class IntegrationTestBase {
+public abstract class IntegrationTestBase {
 
     public static final String CONFLUENT_PLATFORM_VERSION = "5.0.1";
 

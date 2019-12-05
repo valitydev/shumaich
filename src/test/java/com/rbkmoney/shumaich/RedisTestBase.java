@@ -8,16 +8,14 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = RedisTestBase.Initializer.class, classes = RedisConfiguration.class)
-public class RedisTestBase {
+public abstract class RedisTestBase {
 
     @ClassRule
     public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
