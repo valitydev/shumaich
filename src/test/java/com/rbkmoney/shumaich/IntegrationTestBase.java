@@ -9,10 +9,14 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.ClassRule;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 
@@ -21,6 +25,9 @@ import java.util.Collections;
 import java.util.Properties;
 
 @Slf4j
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = ShumaichApplication.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public class IntegrationTestBase {
 
@@ -30,13 +37,16 @@ public class IntegrationTestBase {
     public static KafkaContainer kafka = new KafkaContainer(CONFLUENT_PLATFORM_VERSION).withEmbeddedZookeeper();
 
     @ClassRule
-    public static GenericContainer<?> redis = new GenericContainer<>("redis").withExposedPorts(6379);
+    public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
+            .withExposedPorts(6379);
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
-                    .of("kafka.bootstrap.servers=" + kafka.getBootstrapServers())
+                    .of("kafka.bootstrap.servers=" + kafka.getBootstrapServers(),
+                            "redis.host=" + redis.getContainerIpAddress(),
+                            "redis.port=" + redis.getMappedPort(6379))
                     .applyTo(configurableApplicationContext.getEnvironment());
             initTopic("request_log", RequestLogDeserializer.class);
             initTopic("operation_log", OperationLogDeserializer.class);

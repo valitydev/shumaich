@@ -1,11 +1,18 @@
 package com.rbkmoney.shumaich.config;
 
+import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
+import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
+import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
+import com.rbkmoney.shumaich.kafka.serde.RequestLogDeserializer;
 import com.rbkmoney.shumaich.kafka.serde.RequestLogSerializer;
+import com.rbkmoney.shumaich.service.Handler;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -13,6 +20,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.io.File;
 import java.util.HashMap;
@@ -25,6 +34,7 @@ public class KafkaConfiguration {
     private static final String PKCS_12 = "PKCS12";
     private static final String SSL = "SSL";
     private static final String NONE = "none";
+    private static final String EARLIEST = "earliest";
 
     @Value("${kafka.bootstrap.servers}")
     private String bootstrapServers;
@@ -45,13 +55,25 @@ public class KafkaConfiguration {
     private String clientStoreCertPath;
 
     @Value("${kafka.ssl.enable}")
-    private boolean kafkaSslEnable;
+    private Boolean kafkaSslEnable;
+
+    @Value("${kafka.topics.partitions-per-thread}")
+    private Integer partitionsPerThread;
+
+    @Value("${kafka.topics.polling-timeout}")
+    private Long pollingTimeout;
+
+    @Value("${kafka.topics.request-log-name}")
+    private String requestLogTopicName;
+
+    @Value("${kafka.topics.operation-log-name}")
+    private String operationLogTopicName;
 
     public Map<String, Object> consumerConfig() {
         //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, NONE);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
@@ -71,10 +93,51 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaProducer<String, RequestLog> kafkaRequestLogProducer() {
+    public KafkaTemplate<String, RequestLog> requestLogKafkaTemplate() {
         Map<String, Object> configs = commonProducerProps();
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestLogSerializer.class);
-        return new KafkaProducer<>(configs);
+        KafkaTemplate<String, RequestLog> kafkaTemplate = new KafkaTemplate<>(
+                new DefaultKafkaProducerFactory<>(configs), true);
+        kafkaTemplate.setDefaultTopic(requestLogTopicName);
+        return kafkaTemplate;
+    }
+
+    @Bean
+    public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
+        Map<String, Object> configs = commonProducerProps();
+        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
+        KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
+                new DefaultKafkaProducerFactory<>(configs), true);
+        kafkaTemplate.setDefaultTopic(operationLogTopicName);
+        return kafkaTemplate;
+    }
+
+    @Bean
+    public TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager(KafkaOffsetDao kafkaOffsetDao,
+                                                                                         Handler<RequestLog> handler) {
+        Map<String, Object> consumerProps = consumerConfig();
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestLogDeserializer.class);
+        return new TopicConsumptionManager<>(new KafkaConsumer<>(consumerProps).partitionsFor(requestLogTopicName),
+                partitionsPerThread,
+                consumerProps,
+                kafkaOffsetDao,
+                handler,
+                pollingTimeout
+                );
+    }
+
+    @Bean
+    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(KafkaOffsetDao kafkaOffsetDao,
+                                                                                             Handler<OperationLog> handler) {
+        Map<String, Object> consumerProps = consumerConfig();
+        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
+        return new TopicConsumptionManager<>(new KafkaConsumer<>(consumerProps).partitionsFor(operationLogTopicName),
+                partitionsPerThread,
+                consumerProps,
+                kafkaOffsetDao,
+                handler,
+                pollingTimeout
+                );
     }
 
     public static Map<String, Object> sslConfigure(Boolean kafkaSslEnable, String serverStoreCertPath, String serverStorePassword,

@@ -18,6 +18,10 @@ spring:
     ansi:
       enabled: always
 
+redis:
+  host: localhost
+  port: 6379
+
 kafka:
   bootstrap.servers: "localhost:29092"
   ssl:
@@ -29,6 +33,11 @@ kafka:
     server-keystore-location: src/main/resources/cert/truststore.p12
   topics:
     consumer-monitor-rate: 3000
+    partitions-per-thread: 1
+    polling-timeout: 10000
+    request-log-name: "request_log"
+    operation-log-name: "operation_log"
+
 
 retry:
   max.attempts: 10
