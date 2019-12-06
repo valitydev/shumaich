@@ -17,7 +17,7 @@ public class OperationLog {
     private OperationType operationType;
     private Long account;
     private Long amountWithSign;
-    private String currencySymbCode;
+    private String currencySymbolicCode;
     private String description;
     private Instant creationTime;
     private Integer sequence;

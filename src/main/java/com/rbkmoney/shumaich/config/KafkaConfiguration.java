@@ -17,6 +17,7 @@ import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
+import org.apache.kafka.common.security.auth.SecurityProtocol;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,31 +36,10 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 public class KafkaConfiguration {
 
-    private static final String PKCS_12 = "PKCS12";
-    private static final String SSL = "SSL";
-    private static final String NONE = "none";
     private static final String EARLIEST = "earliest";
 
     @Value("${kafka.bootstrap.servers}")
     private String bootstrapServers;
-
-    @Value("${kafka.ssl.server-password}")
-    private String serverStorePassword;
-
-    @Value("${kafka.ssl.server-keystore-location}")
-    private String serverStoreCertPath;
-
-    @Value("${kafka.ssl.keystore-password}")
-    private String keyStorePassword;
-
-    @Value("${kafka.ssl.key-password}")
-    private String keyPassword;
-
-    @Value("${kafka.ssl.keystore-location}")
-    private String clientStoreCertPath;
-
-    @Value("${kafka.ssl.enable}")
-    private Boolean kafkaSslEnable;
 
     @Value("${kafka.topics.partitions-per-thread}")
     private Integer partitionsPerThread;
@@ -73,32 +53,38 @@ public class KafkaConfiguration {
     @Value("${kafka.topics.operation-log-name}")
     private String operationLogTopicName;
 
-    public Map<String, Object> consumerConfig() {
+    private final KafkaSslProperties kafkaSslProperties;
+
+
+    private Map<String, Object> consumerConfig() {
         //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
-                clientStoreCertPath, keyStorePassword, keyPassword));
+
+        configureSsl(props, kafkaSslProperties);
+
         return props;
     }
 
-    private Map<String, Object> commonProducerProps() {
+
+    private Map<String, Object> producerConfig() {
         //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
-                clientStoreCertPath, keyStorePassword, keyPassword));
+
+        configureSsl(props, kafkaSslProperties);
+
         return props;
     }
 
     @Bean
     public KafkaTemplate<String, RequestLog> requestLogKafkaTemplate() {
-        Map<String, Object> configs = commonProducerProps();
+        Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestLogSerializer.class);
         KafkaTemplate<String, RequestLog> kafkaTemplate = new KafkaTemplate<>(
                 new DefaultKafkaProducerFactory<>(configs), true);
@@ -108,7 +94,7 @@ public class KafkaConfiguration {
 
     @Bean
     public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
-        Map<String, Object> configs = commonProducerProps();
+        Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
         KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
                 new DefaultKafkaProducerFactory<>(configs), true);
@@ -120,8 +106,9 @@ public class KafkaConfiguration {
     AdminClient kafkaAdminClient() {
         Map<String, Object> props = new HashMap<>();
         props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.putAll(sslConfigure(kafkaSslEnable, serverStoreCertPath, serverStorePassword,
-                clientStoreCertPath, keyStorePassword, keyPassword));
+
+        configureSsl(props, kafkaSslProperties);
+
         return AdminClient.create(props);
     }
 
@@ -169,20 +156,17 @@ public class KafkaConfiguration {
         );
     }
 
-    public static Map<String, Object> sslConfigure(Boolean kafkaSslEnable, String serverStoreCertPath, String serverStorePassword,
-                                                   String clientStoreCertPath, String keyStorePassword, String keyPassword) {
-        Map<String, Object> configProps = new HashMap<>();
-        if (kafkaSslEnable) {
-            configProps.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SSL);
-            configProps.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, new File(serverStoreCertPath).getAbsolutePath());
-            configProps.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, serverStorePassword);
-            configProps.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, PKCS_12);
-            configProps.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, PKCS_12);
-            configProps.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, new File(clientStoreCertPath).getAbsolutePath());
-            configProps.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, keyStorePassword);
-            configProps.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, keyPassword);
+    private void configureSsl(Map<String, Object> props, KafkaSslProperties kafkaSslProperties) {
+        if (kafkaSslProperties.isEnabled()) {
+            props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, SecurityProtocol.SSL.name());
+            props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, new File(kafkaSslProperties.getTrustStoreLocation()).getAbsolutePath());
+            props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, kafkaSslProperties.getTrustStorePassword());
+            props.put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, kafkaSslProperties.getKeyStoreType());
+            props.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, kafkaSslProperties.getTrustStoreType());
+            props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, new File(kafkaSslProperties.getKeyStoreLocation()).getAbsolutePath());
+            props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, kafkaSslProperties.getKeyStorePassword());
+            props.put(SslConfigs.SSL_KEY_PASSWORD_CONFIG, kafkaSslProperties.getKeyPassword());
         }
-        return configProps;
     }
 
 }

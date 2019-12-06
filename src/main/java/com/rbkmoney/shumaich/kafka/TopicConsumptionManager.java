@@ -31,10 +31,7 @@ public class TopicConsumptionManager<K, V> {
                                    Handler<V> handler,
                                    Long pollingTimeout) {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
-        int consumersAmount = topicPartitions.size() / partitionsPerThread;
-        if (topicPartitions.size() % partitionsPerThread != 0) {
-            consumersAmount++;
-        }
+        int consumersAmount = (int) Math.ceil(topicPartitions.size() / (double) partitionsPerThread);
         this.executorService = Executors.newFixedThreadPool(consumersAmount);
 
         for (int i = 0; i < consumersAmount; i++) {

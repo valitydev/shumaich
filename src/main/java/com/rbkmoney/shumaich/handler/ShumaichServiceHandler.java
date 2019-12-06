@@ -20,11 +20,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -37,11 +37,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -54,11 +54,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -71,11 +71,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -88,11 +88,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -105,11 +105,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return null;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }
@@ -122,11 +122,11 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             return 0L;
         } catch (Exception ex) {
             // retryable
-            log.error("Some exception:", ex);
+            log.error("Some exception", ex);
             throw new WUnavailableResultException(ex);
         } catch (Throwable e) {
             //not
-            log.error("Failed e: ", e);
+            log.error("Failed e", e);
             throw new TException(e);
         }
     }

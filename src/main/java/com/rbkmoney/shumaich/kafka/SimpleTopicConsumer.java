@@ -14,6 +14,7 @@ import org.apache.kafka.common.errors.WakeupException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -85,15 +86,20 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
     private void saveOffsets(ConsumerRecords<K, V> records) {
 
-        List<KafkaOffset> offsets = records.partitions().stream().map(topicPartition -> {
-            List<ConsumerRecord<K, V>> recordsForPartition = records.records(topicPartition);
-            if (recordsForPartition.isEmpty()) return null;
-
-            long lastOffset = recordsForPartition.get(recordsForPartition.size() - 1).offset();
-            return new KafkaOffset(topicPartition, lastOffset + 1); // +1 to not repeat read of last message
-        }).collect(Collectors.toList());
+        List<KafkaOffset> offsets = records.partitions().stream()
+                .map(topicPartition -> getLatestKafkaOffset(records, topicPartition))
+                .filter(Objects::isNull)
+                .collect(Collectors.toList());
 
         kafkaOffsetDao.saveOffsets(offsets);
+    }
+
+    private KafkaOffset getLatestKafkaOffset(ConsumerRecords<K, V> records, TopicPartition topicPartition) {
+        List<ConsumerRecord<K, V>> recordsForPartition = records.records(topicPartition);
+        if (recordsForPartition.isEmpty()) return null;
+
+        long lastOffset = recordsForPartition.get(recordsForPartition.size() - 1).offset();
+        return new KafkaOffset(topicPartition, lastOffset + 1); // +1 to not repeat read of last message
     }
 
 }
