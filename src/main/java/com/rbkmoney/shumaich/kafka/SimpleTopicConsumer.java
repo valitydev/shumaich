@@ -63,6 +63,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
                 log.error("External wakeup call occurred", e);
             }
         } catch (Exception e) {
+            alive.set(false);
             log.error("Error during Kafka polling", e);
         } finally {
             consumer.close();
@@ -89,7 +90,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
             if (recordsForPartition.isEmpty()) return null;
 
             long lastOffset = recordsForPartition.get(recordsForPartition.size() - 1).offset();
-            return new KafkaOffset(topicPartition, lastOffset);
+            return new KafkaOffset(topicPartition, lastOffset + 1); // +1 to not repeat read of last message
         }).collect(Collectors.toList());
 
         kafkaOffsetDao.saveOffsets(offsets);

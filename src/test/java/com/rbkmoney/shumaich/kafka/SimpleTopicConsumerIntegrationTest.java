@@ -13,6 +13,7 @@ import com.rbkmoney.shumaich.service.RequestLogHandlingService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.Assert;
 import org.junit.Before;
@@ -37,8 +38,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 @Slf4j
-@ContextConfiguration(classes = {SimpleConsumerIntegrationTest.Config.class})
-public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
+@ContextConfiguration(classes = {SimpleTopicConsumerIntegrationTest.Config.class})
+public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     Handler<RequestLog> requestLogHandler;
@@ -71,10 +72,11 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void testCreationAndInteraction() throws InterruptedException {
+    public void testCreationAndInteraction() throws InterruptedException, ExecutionException {
         requestLogKafkaTemplate.sendDefault(TestData.requestLog());
 
         Mockito.verify(requestLogHandler, Mockito.timeout(2000).times(1)).handle(any());
+        checkOffsets(1L);
     }
 
     @Test
@@ -98,6 +100,20 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
 
         //we skipped 10 messages, assuming to have 10 more in partition 0
         Assert.assertEquals(10, receivedRecordsSize.get());
+        checkOffsets(20L);
+    }
+
+    @Test
+    public void randomExceptionInMessageProcessing() throws InterruptedException, ExecutionException {
+        Mockito.doThrow(RuntimeException.class)
+                .doThrow(RuntimeException.class)
+                .doNothing()
+                .when(requestLogHandler).handle(any());
+
+        requestLogKafkaTemplate.sendDefault(TestData.requestLog());
+
+        Mockito.verify(requestLogHandler, Mockito.timeout(6000).times(3)).handle(any());
+        checkOffsets(1L);
     }
 
     private void registerReceivedMessages(AtomicInteger receivedRecordsSize, String methodName) {
@@ -110,6 +126,21 @@ public class SimpleConsumerIntegrationTest extends IntegrationTestBase {
         })
                 .when(requestLogHandler)
                 .handle(any());
+    }
+
+    private void checkOffsets(Long expectedOffset) throws ExecutionException, InterruptedException {
+        List<TopicPartitionInfo> partitions = kafkaAdminClient.describeTopics(List.of(REQUEST_LOG_TOPIC))
+                .values()
+                .get(REQUEST_LOG_TOPIC)
+                .get()
+                .partitions();
+
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(partitions.stream()
+                .map(topicPartitionInfo -> new TopicPartition(REQUEST_LOG_TOPIC, topicPartitionInfo.partition()))
+                .collect(Collectors.toList())
+        );
+
+        Assert.assertTrue(kafkaOffsets.stream().anyMatch(kafkaOffset -> kafkaOffset.getOffset().equals(expectedOffset)));
     }
 
 
