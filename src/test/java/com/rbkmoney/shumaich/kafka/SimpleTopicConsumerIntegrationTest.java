@@ -140,7 +140,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
                 .collect(Collectors.toList())
         );
 
-        Assert.assertTrue(kafkaOffsets.stream().anyMatch(kafkaOffset -> kafkaOffset.getOffset().equals(expectedOffset)));
+        Assert.assertTrue(kafkaOffsets.toString(), kafkaOffsets.stream().anyMatch(kafkaOffset -> kafkaOffset.getOffset().equals(expectedOffset)));
     }
 
 
@@ -157,6 +157,9 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
                         topicPartitionInfo.partition(),
                         initialOffsets))
                 .collect(Collectors.toList()));
+
+        //consumers can be initialized faster then savingOffsets, need to reload
+        requestLogTopicConsumptionManager.shutdownConsumers();
     }
 
     @Order
