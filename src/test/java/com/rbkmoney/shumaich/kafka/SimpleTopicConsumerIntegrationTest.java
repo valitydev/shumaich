@@ -66,9 +66,10 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
     RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate;
 
     @Before
-    public void resetOffsets() {
+    public void resetOffsets() throws InterruptedException {
         Mockito.reset(requestLogHandler);
         TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
+        Thread.sleep(100);
     }
 
     @Test
@@ -120,8 +121,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         Mockito.doAnswer(invocation -> {
             log.error("{}: {}", methodName, receivedRecordsSize.get());
             // using compareAndSet as we have multiple consumers
-            receivedRecordsSize.compareAndSet(0,
-                    ((ConsumerRecords<String, RequestLog>) invocation.getArguments()[0]).count());
+            receivedRecordsSize.addAndGet(((ConsumerRecords<String, RequestLog>) invocation.getArguments()[0]).count());
             return null;
         })
                 .when(requestLogHandler)

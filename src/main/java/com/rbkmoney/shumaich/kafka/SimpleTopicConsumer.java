@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -88,7 +89,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
         List<KafkaOffset> offsets = records.partitions().stream()
                 .map(topicPartition -> getLatestKafkaOffset(records, topicPartition))
-                .filter(Objects::isNull)
+                .filter(Predicate.not(Objects::isNull))
                 .collect(Collectors.toList());
 
         kafkaOffsetDao.saveOffsets(offsets);
