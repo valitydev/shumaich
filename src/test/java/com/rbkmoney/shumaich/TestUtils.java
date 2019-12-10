@@ -8,11 +8,12 @@ import java.util.Map;
 
 public class TestUtils {
 
-    public static void deleteOffsets(RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate) {
+    public static void deleteOffsets(RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate) throws InterruptedException {
         HashOperations<String, Object, Object> hashOps = kafkaOffsetRedisTemplate.opsForHash();
         Map<Object, Object> entries = hashOps.entries("kafka_offsets");
         entries.replaceAll((key, value) -> null);
         hashOps.putAll("kafka_offsets", entries);
+        Thread.sleep(300);
     }
 
 }

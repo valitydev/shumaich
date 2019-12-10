@@ -25,7 +25,7 @@ public class KafkaOffsetDaoTest extends RedisTestBase {
     RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate;
 
     @After
-    public void cleanUp() {
+    public void cleanUp() throws InterruptedException {
         TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
     }
 

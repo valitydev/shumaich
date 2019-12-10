@@ -2,16 +2,24 @@ package com.rbkmoney.shumaich;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.RecordsToDelete;
+import org.apache.kafka.clients.admin.TopicDescription;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.KafkaContainer;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.shumaich.TestData.OPERATION_LOG_TOPIC;
 import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
@@ -22,14 +30,9 @@ import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public abstract class IntegrationTestBase {
 
-    public static final String CONFLUENT_PLATFORM_VERSION = "5.0.1";
-
     @ClassRule
-    public static KafkaContainer kafka = new KafkaContainer(CONFLUENT_PLATFORM_VERSION).withEmbeddedZookeeper();
-
-    static {
-        createKafkaTopics();
-    }
+    public static EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(3, true, 20,
+            REQUEST_LOG_TOPIC, OPERATION_LOG_TOPIC);
 
     @ClassRule
     public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
@@ -39,26 +42,36 @@ public abstract class IntegrationTestBase {
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
-                    .of("kafka.bootstrap.servers=" + kafka.getBootstrapServers(),
+                    .of("kafka.bootstrap.servers=" + kafka.getEmbeddedKafka().getBrokersAsString(),
                             "redis.host=" + redis.getContainerIpAddress(),
                             "redis.port=" + redis.getMappedPort(6379))
                     .applyTo(configurableApplicationContext.getEnvironment());
         }
-
     }
 
-    private static void createKafkaTopics() {
-        try {
-            kafka.start();
-            kafka.execInContainer("/bin/sh", "-c", String.format(
-                    "/usr/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1" +
-                            " --partitions 10 --topic %s", REQUEST_LOG_TOPIC));
-            kafka.execInContainer("/bin/sh", "-c", String.format(
-                    "/usr/bin/kafka-topics --create --zookeeper localhost:2181 --replication-factor 1" +
-                            " --partitions 10 --topic %s", OPERATION_LOG_TOPIC));
-        } catch (Exception e) {
-            System.err.println("kek");
-        }
+    protected void clearTopic(String topicName, Integer offset) {
+        kafka.getEmbeddedKafka().doWithAdmin(adminClient -> {
+            try {
+                TopicDescription topicDescription = adminClient
+                        .describeTopics(List.of(topicName))
+                        .values()
+                        .get(topicName)
+                        .get();
+                Map<TopicPartition, RecordsToDelete> recordsToDelete = topicDescription.partitions().stream()
+                        .map(TopicPartitionInfo::partition)
+                        .collect(Collectors.toMap(integer ->
+                                new TopicPartition(topicName, integer),
+                                integer -> RecordsToDelete.beforeOffset(offset))
+                        );
+                adminClient.deleteRecords(recordsToDelete).lowWatermarks().forEach((topicPartition, deletedRecordsKafkaFuture) -> {
+                    try {
+                        deletedRecordsKafkaFuture.get();
+                    } catch (Exception ignored) {}
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
 }

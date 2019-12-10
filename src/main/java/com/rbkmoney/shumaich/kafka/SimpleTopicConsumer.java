@@ -63,9 +63,9 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
                 log.error("External wakeup call occurred", e);
             }
         } catch (Exception e) {
-            alive.set(false);
             log.error("Error during Kafka polling", e);
         } finally {
+            alive.set(false);
             consumer.close();
         }
     }

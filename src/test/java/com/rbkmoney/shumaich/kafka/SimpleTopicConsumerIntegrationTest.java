@@ -15,8 +15,8 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,11 +65,11 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
     @Autowired
     RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate;
 
-    @Before
-    public void resetOffsets() throws InterruptedException {
+    @After
+    public void clear() throws InterruptedException {
         Mockito.reset(requestLogHandler);
         TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
-        Thread.sleep(100);
+        clearTopic(REQUEST_LOG_TOPIC, 100);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         setInitialOffsets(10L);
 
         AtomicInteger receivedRecordsSize = new AtomicInteger(0);
-        registerReceivedMessages(receivedRecordsSize, "offsetsLoadedOnStartup");
+        registerReceivedMessages(receivedRecordsSize);
 
         //reloading consumers for offset change
         requestLogTopicConsumptionManager.shutdownConsumers();
@@ -110,17 +110,17 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
                 .doThrow(RuntimeException.class)
                 .doNothing()
                 .when(requestLogHandler).handle(any());
-
         requestLogKafkaTemplate.sendDefault(TestData.requestLog());
 
         Mockito.verify(requestLogHandler, Mockito.timeout(6000).times(3)).handle(any());
         checkOffsets(1L);
     }
 
-    private void registerReceivedMessages(AtomicInteger receivedRecordsSize, String methodName) {
+
+
+    private void registerReceivedMessages(AtomicInteger receivedRecordsSize) {
         Mockito.doAnswer(invocation -> {
-            log.error("{}: {}", methodName, receivedRecordsSize.get());
-            // using compareAndSet as we have multiple consumers
+            // using addAndGet as we have multiple consumers
             receivedRecordsSize.addAndGet(((ConsumerRecords<String, RequestLog>) invocation.getArguments()[0]).count());
             return null;
         })
@@ -158,8 +158,6 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
                         initialOffsets))
                 .collect(Collectors.toList()));
 
-        //consumers can be initialized faster then savingOffsets, need to reload
-        requestLogTopicConsumptionManager.shutdownConsumers();
     }
 
     @Order
