@@ -49,7 +49,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
         try {
             initConsumer();
 
-            while (alive.get()) {
+            while (isAlive()) {
                 ConsumerRecords<K, V> records = consumer.poll(Duration.ofMillis(pollingTimeout));
                 if (records.count() > 0) {
                     handler.handle(records);
@@ -59,7 +59,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
         } catch (WakeupException e) {
             // Ignore exception if closing
-            if (alive.get()) {
+            if (isAlive()) {
                 log.error("External wakeup call occurred", e);
             }
         } catch (Exception e) {

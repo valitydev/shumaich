@@ -77,7 +77,12 @@ public class TopicConsumptionManager<K, V> {
     private List<TopicPartition> calculateAssignedPartitions(Integer partitionsPerThread,
                                                              TopicDescription topicDescription,
                                                              int i) {
-        return topicDescription.partitions().subList(i * partitionsPerThread, (i + 1) * partitionsPerThread)
+        int fromIndex = i * partitionsPerThread;
+        int toIndex = fromIndex + partitionsPerThread > topicDescription.partitions().size()
+                ? fromIndex + (topicDescription.partitions().size() % partitionsPerThread)
+                : fromIndex + partitionsPerThread;
+
+        return topicDescription.partitions().subList(fromIndex, toIndex)
                 .stream()
                 .map(partitionInfo -> new TopicPartition(
                         topicDescription.name(),

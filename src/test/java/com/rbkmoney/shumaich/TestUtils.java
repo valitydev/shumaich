@@ -13,7 +13,6 @@ public class TestUtils {
         Map<Object, Object> entries = hashOps.entries("kafka_offsets");
         entries.replaceAll((key, value) -> null);
         hashOps.putAll("kafka_offsets", entries);
-        Thread.sleep(300);
     }
 
 }

@@ -1,5 +1,5 @@
 server:
-  port: @server.port@
+  port: '@server.port@'
 
 management:
   security:
@@ -13,7 +13,7 @@ management:
 
 spring:
   application:
-    name: @project.name@
+    name: '@project.name@'
   output:
     ansi:
       enabled: always
@@ -48,5 +48,5 @@ scheduled:
     size: 10
 
 info:
-  version: @project.version@
+  version: '@project.version@'
   stage: dev
