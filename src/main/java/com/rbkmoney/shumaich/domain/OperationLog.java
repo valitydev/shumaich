@@ -13,12 +13,13 @@ import java.time.Instant;
 @AllArgsConstructor
 public class OperationLog {
     private String planId;
-    private String batchId;
+    private Long batchId;
     private OperationType operationType;
     private Long account;
     private Long amountWithSign;
     private String currencySymbolicCode;
     private String description;
+    //todo remove?
     private Instant creationTime;
     private Integer sequence;
     private Integer total;

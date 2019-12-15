@@ -1,6 +1,7 @@
 package com.rbkmoney.shumaich.handler;
 
 import com.rbkmoney.damsel.shumpune.*;
+import com.rbkmoney.shumaich.service.RequestRegistrationService;
 import com.rbkmoney.woody.api.flow.error.WUnavailableResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,12 +13,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
+    private final RequestRegistrationService requestRegistrationService;
+
     @Override
     public Clock hold(PostingPlanChange postingPlanChange) throws TException {
         log.info("Start hold postingPlanChange: {}", postingPlanChange);
         try {
-            //todo code
-            return null;
+            return requestRegistrationService.registerHold(postingPlanChange);
         } catch (Exception ex) {
             // retryable
             log.error("Some exception", ex);
@@ -33,8 +35,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     public Clock commitPlan(PostingPlan postingPlan) throws TException {
         log.info("Start commitPlan postingPlan: {}", postingPlan);
         try {
-            //todo code
-            return null;
+            return requestRegistrationService.registerCommit(postingPlan);
         } catch (Exception ex) {
             // retryable
             log.error("Some exception", ex);
@@ -50,8 +51,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     public Clock rollbackPlan(PostingPlan postingPlan) throws TException {
         log.info("Start rollbackPlan postingPlan: {}", postingPlan);
         try {
-            //todo code
-            return null;
+            return requestRegistrationService.registerRollback(postingPlan);
         } catch (Exception ex) {
             // retryable
             log.error("Some exception", ex);

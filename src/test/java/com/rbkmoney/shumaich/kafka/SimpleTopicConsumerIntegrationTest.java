@@ -57,7 +57,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
     KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
 
     @Autowired
-    KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
+    KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
 
     @Autowired
     AdminClient kafkaAdminClient;

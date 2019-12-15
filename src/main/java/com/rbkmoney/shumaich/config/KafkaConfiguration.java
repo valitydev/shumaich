@@ -93,11 +93,11 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
+    public KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
-        KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(configs), true);
+        KafkaTemplate<Long, OperationLog> kafkaTemplate = new KafkaTemplate<>(
+                new DefaultKafkaProducerFactory<>(configs), false);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }
@@ -135,7 +135,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
+    public TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetDao kafkaOffsetDao,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();

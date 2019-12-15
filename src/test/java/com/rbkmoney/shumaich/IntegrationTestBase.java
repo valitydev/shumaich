@@ -9,6 +9,7 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.testcontainers.containers.GenericContainer;
@@ -18,6 +19,7 @@ import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
 
 @Slf4j
 @RunWith(SpringRunner.class)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(classes = ShumaichApplication.class)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public abstract class IntegrationTestBase {
