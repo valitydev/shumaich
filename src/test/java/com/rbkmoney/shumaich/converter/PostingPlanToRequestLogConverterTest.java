@@ -9,7 +9,11 @@ import org.junit.Test;
 
 public class PostingPlanToRequestLogConverterTest {
 
-    PostingPlanToRequestLogConverter converter = new PostingPlanToRequestLogConverter();
+    PostingPlanToRequestLogConverter converter = new PostingPlanToRequestLogConverter(
+            new PostingBatchDamselToPostingBatchConverter(
+                    new PostingDamselToPostingConverter()
+            )
+    );
 
     @Test
     public void conversion() {
@@ -18,7 +22,7 @@ public class PostingPlanToRequestLogConverterTest {
 
         Assert.assertEquals("plan", requestLog.getPlanId());
         Assert.assertEquals(OperationType.COMMIT, requestLog.getOperationType());
-        Assert.assertEquals(postingPlan.getBatchList(), requestLog.getPostingBatches());
+        Assert.assertEquals(postingPlan.getBatchList().size(), requestLog.getPostingBatches().size());
     }
 
 }

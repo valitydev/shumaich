@@ -21,6 +21,6 @@ public class OperationLog {
     private String description;
     //todo remove?
     private Instant creationTime;
-    private Integer sequence;
-    private Integer total;
+    private Long sequence;
+    private Long total;
 }

@@ -8,7 +8,7 @@ public class ClockTokenFormatterTest {
 
     @Test
     public void serialize() {
-        Assert.assertEquals("plan_hold", ClockTokenFormatter.getClock(TestData.requestLog()));
+        Assert.assertEquals("plan_HOLD", ClockTokenFormatter.getClock(TestData.requestLog()));
     }
 
 }

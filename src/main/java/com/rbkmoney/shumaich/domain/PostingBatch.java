@@ -11,8 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequestLog {
-    private String planId;
-    private OperationType operationType;
-    private List<PostingBatch> postingBatches;
+public class PostingBatch {
+    private long id;
+    private List<Posting> postings;
 }

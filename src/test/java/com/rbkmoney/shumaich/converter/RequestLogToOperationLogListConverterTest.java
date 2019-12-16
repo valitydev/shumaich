@@ -21,10 +21,10 @@ public class RequestLogToOperationLogListConverterTest {
         RequestLog requestLog = TestData.requestLog();
         List<OperationLog> operationLogs = converter.convert(requestLog);
 
-        Assert.assertEquals(operationLogs.get(0).getTotal().intValue(), operationLogs.size());
+        Assert.assertEquals(operationLogs.get(0).getTotal().longValue(), operationLogs.size());
 
         List<OperationLog> orderedOperationLogs = operationLogs.stream()
-                .sorted(Comparator.comparingInt(OperationLog::getSequence))
+                .sorted(Comparator.comparingLong(OperationLog::getSequence))
                 .collect(Collectors.toList());
 
         for (int i = 0; i < orderedOperationLogs.size(); i++) {

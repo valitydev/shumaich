@@ -1,7 +1,6 @@
 package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
-import com.rbkmoney.shumaich.TestData;
 import com.rbkmoney.shumaich.TestUtils;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,9 +41,6 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     Handler<OperationLog> operationLogHandler;
-
-    @Autowired
-    KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
 
     @Autowired
     KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
@@ -138,12 +133,6 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         checkOffsets(testPartition, 1L, REQUEST_LOG_TOPIC);
     }
 
-    private void sendRequestLogToPartition(int partitionNumber) {
-        RequestLog requestLog = TestData.requestLog();
-        requestLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
-    }
-
-    @Order
     @Configuration
     public static class Config {
 

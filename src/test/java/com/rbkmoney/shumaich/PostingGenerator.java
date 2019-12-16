@@ -140,4 +140,13 @@ public class PostingGenerator {
         postingPlan.setId(planId);
         return postingPlan;
     }
+
+    public static Posting createPosting() {
+        return new Posting()
+                .setCurrencySymCode("RUB")
+                .setAmount(1)
+                .setFromId(1L)
+                .setToId(2L)
+                .setDescription("test");
+    }
 }

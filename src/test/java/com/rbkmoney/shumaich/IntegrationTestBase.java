@@ -3,6 +3,7 @@ package com.rbkmoney.shumaich;
 
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
+import com.rbkmoney.shumaich.domain.RequestLog;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -19,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -44,6 +46,9 @@ public abstract class IntegrationTestBase {
 
     @Autowired
     protected AdminClient kafkaAdminClient;
+
+    @Autowired
+    KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
 
     @SpyBean
     protected KafkaOffsetDao kafkaOffsetDao;
@@ -114,6 +119,11 @@ public abstract class IntegrationTestBase {
         })
                 .when(handler)
                 .handle(any());
+    }
+
+    protected void sendRequestLogToPartition(int partitionNumber) {
+        RequestLog requestLog = TestData.requestLog();
+        requestLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
     }
 
 }

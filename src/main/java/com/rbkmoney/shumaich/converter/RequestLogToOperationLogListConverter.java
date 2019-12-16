@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
 import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.shumaich.domain.Posting;
+import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.RequestLog;
 import org.springframework.stereotype.Component;
 
@@ -10,7 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PrimitiveIterator;
-import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 @Component
 public class RequestLogToOperationLogListConverter {
@@ -18,8 +18,10 @@ public class RequestLogToOperationLogListConverter {
     public List<OperationLog> convert(RequestLog source) {
         List<OperationLog> operationLogs = new ArrayList<>();
         // Each posting will be divided into 2 operations
-        int totalOperations = 2 * source.getPostingBatches().stream().mapToInt(PostingBatch::getPostingsSize).sum();
-        PrimitiveIterator.OfInt sequenceId = IntStream.range(0, totalOperations).iterator();
+        long totalOperations = 2 * source.getPostingBatches().stream()
+                .mapToLong(postingBatch -> postingBatch.getPostings().size())
+                .sum();
+        PrimitiveIterator.OfLong sequenceId = LongStream.range(0, totalOperations).iterator();
         Instant creationTime = Instant.now();
         for (PostingBatch postingBatch : source.getPostingBatches()) {
             for (Posting posting : postingBatch.getPostings()) {
@@ -37,8 +39,8 @@ public class RequestLogToOperationLogListConverter {
     }
 
     private OperationLog createOperationLog(RequestLog source,
-                                            int totalOperations,
-                                            Integer sequenceId,
+                                            long totalOperations,
+                                            Long sequenceId,
                                             Instant creationTime,
                                             PostingBatch postingBatch,
                                             Posting posting,

@@ -2,7 +2,6 @@ package com.rbkmoney.shumaich.service;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.TestUtils;
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
@@ -26,9 +25,6 @@ public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBas
 
     @SpyBean
     KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
-
-    @SpyBean
-    KafkaOffsetDao kafkaOffsetDao;
 
     @Autowired
     TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager;
