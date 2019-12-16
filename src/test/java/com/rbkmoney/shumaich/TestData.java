@@ -1,5 +1,7 @@
 package com.rbkmoney.shumaich;
 
+import com.rbkmoney.damsel.shumpune.PostingPlan;
+import com.rbkmoney.damsel.shumpune.PostingPlanChange;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.OperationType;
@@ -10,7 +12,7 @@ import java.util.List;
 
 public class TestData {
 
-    public static final String TEST_TOPIC = "test-topic";
+    public static final String TEST_TOPIC = "test_topic";
     public static final String OPERATION_LOG_TOPIC = "operation_log";
     public static final String REQUEST_LOG_TOPIC = "request_log";
 
@@ -18,7 +20,12 @@ public class TestData {
         return RequestLog.builder()
                 .planId("plan")
                 .operationType(OperationType.HOLD)
-                .postingBatches(List.of())
+                .postingBatches(
+                        List.of(
+                                PostingGenerator.createBatch(1L, 2L, 3L),
+                                PostingGenerator.createBatch(1L, 2L, 3L)
+                        )
+                )
                 .build();
     }
 
@@ -34,14 +41,15 @@ public class TestData {
                 .build();
     }
 
-    public static KafkaOffset kafkaOffset(Integer partition, Long offset) {
-        return KafkaOffset.builder()
-                .topicPartition(new TopicPartition(TEST_TOPIC, partition))
-                .offset(offset)
-                .build();
-    }
-
     public static TopicPartition topicPartition(int partition) {
         return new TopicPartition(TEST_TOPIC, partition);
+    }
+
+    public static PostingPlanChange postingPlanChange() {
+        return PostingGenerator.createPostingPlanChange("plan", 1L, 2L, 3L);
+    }
+
+    public static PostingPlan postingPlan() {
+        return PostingGenerator.createPostingPlan("plan", 1L, 2L, 3L);
     }
 }

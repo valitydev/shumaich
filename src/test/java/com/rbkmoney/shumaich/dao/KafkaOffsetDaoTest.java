@@ -32,9 +32,9 @@ public class KafkaOffsetDaoTest extends RedisTestBase {
     @Test
     public void saveAndLoad() {
         kafkaOffsetDao.saveOffsets(List.of(
-                TestData.kafkaOffset(1, 1L),
-                TestData.kafkaOffset(2, 1L),
-                TestData.kafkaOffset(3, 1L)
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 1L)
                 ));
 
         List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(List.of(
@@ -60,15 +60,15 @@ public class KafkaOffsetDaoTest extends RedisTestBase {
     @Test
     public void rewriteExistingOffsets() {
         kafkaOffsetDao.saveOffsets(List.of(
-                TestData.kafkaOffset(1, 1L),
-                TestData.kafkaOffset(2, 1L),
-                TestData.kafkaOffset(3, 1L)
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 1L)
         ));
 
         kafkaOffsetDao.saveOffsets(List.of(
-                TestData.kafkaOffset(1, 10L),
-                TestData.kafkaOffset(2, 10L),
-                TestData.kafkaOffset(3, 10L)
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 10L)
         ));
 
         List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(List.of(
