@@ -1,10 +1,10 @@
 package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
-import com.rbkmoney.shumaich.TestUtils;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.OperationLogHandlingService;
 import com.rbkmoney.shumaich.service.RequestLogHandlingService;
@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
-import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
+import static com.rbkmoney.shumaich.helpers.TestData.REQUEST_LOG_TOPIC;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 

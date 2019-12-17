@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.converter;
 
 import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.shumaich.TestData;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.helpers.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 

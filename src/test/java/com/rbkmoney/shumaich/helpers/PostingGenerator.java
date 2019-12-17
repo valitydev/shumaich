@@ -1,4 +1,4 @@
-package com.rbkmoney.shumaich;
+package com.rbkmoney.shumaich.helpers;
 
 import com.rbkmoney.damsel.shumpune.Posting;
 import com.rbkmoney.damsel.shumpune.PostingBatch;

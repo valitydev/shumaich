@@ -1,30 +1,40 @@
 package com.rbkmoney.shumaich.service;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
-import com.rbkmoney.shumaich.TestUtils;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
-import com.rbkmoney.shumaich.kafka.SimpleTopicConsumerIntegrationTest;
+import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
+import com.rbkmoney.shumaich.helpers.TestData;
+import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ContextConfiguration;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * Every test should use different partition, cause Kafka doesn't provide any method to *reliably* clear topics.
  */
 @Slf4j
-@ContextConfiguration(classes = {SimpleTopicConsumerIntegrationTest.Config.class})
+@ContextConfiguration(classes = {RequestLogHandlingServiceIntegrationTest.Config.class})
 public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBase {
 
     @SpyBean
     KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
+
+    @Autowired
+    IdempotentTestHandler handler;
 
     @Autowired
     TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager;
@@ -35,12 +45,31 @@ public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBas
     @Before
     public void clear() throws InterruptedException {
         TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
-        requestLogTopicConsumptionManager.shutdownConsumers();
+//        requestLogTopicConsumptionManager.shutdownConsumers();
     }
 
     @Test
-    public void successEventPropagation() {
+    public void successEventPropagation() throws InterruptedException, ExecutionException {
+        RequestLog plan = TestData.requestLog("plan");
+        sendRequestLogToPartition(plan);
 
+        Thread.sleep(5000);
+
+        int totalPostings = plan.getPostingBatches().stream()
+                .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
+
+        Assert.assertEquals(totalPostings * 2,
+                handler.countReceivedRecords("plan").intValue());
     }
 
+    @Configuration
+    public static class Config {
+
+        @Bean
+        @Primary
+        Handler<OperationLog> operationLogHandler() {
+            return new IdempotentTestHandler();
+        }
+
+    }
 }

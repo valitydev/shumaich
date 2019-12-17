@@ -4,6 +4,7 @@ package com.rbkmoney.shumaich;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -33,8 +34,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.rbkmoney.shumaich.TestData.OPERATION_LOG_TOPIC;
-import static com.rbkmoney.shumaich.TestData.REQUEST_LOG_TOPIC;
+import static com.rbkmoney.shumaich.helpers.TestData.OPERATION_LOG_TOPIC;
+import static com.rbkmoney.shumaich.helpers.TestData.REQUEST_LOG_TOPIC;
 import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
@@ -48,7 +49,7 @@ public abstract class IntegrationTestBase {
     protected AdminClient kafkaAdminClient;
 
     @Autowired
-    KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
+    protected KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
 
     @SpyBean
     protected KafkaOffsetDao kafkaOffsetDao;
@@ -124,6 +125,10 @@ public abstract class IntegrationTestBase {
     protected void sendRequestLogToPartition(int partitionNumber) {
         RequestLog requestLog = TestData.requestLog();
         requestLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
+    }
+
+    protected void sendRequestLogToPartition(RequestLog requestLog) {
+        requestLogKafkaTemplate.sendDefault(requestLog.getPlanId(), requestLog);
     }
 
 }

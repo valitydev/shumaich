@@ -1,4 +1,4 @@
-package com.rbkmoney.shumaich;
+package com.rbkmoney.shumaich.helpers;
 
 import com.rbkmoney.damsel.shumpune.Posting;
 import com.rbkmoney.damsel.shumpune.PostingBatch;
@@ -28,6 +28,19 @@ public class TestData {
     public static RequestLog requestLog() {
         return RequestLog.builder()
                 .planId("plan")
+                .operationType(OperationType.HOLD)
+                .postingBatches(
+                        List.of(
+                                PostingGenerator.createBatch(1L, 2L, 3L),
+                                PostingGenerator.createBatch(1L, 2L, 3L)
+                        ).stream().map(converter::convert).collect(Collectors.toList())
+                )
+                .build();
+    }
+
+    public static RequestLog requestLog(String planId) {
+        return RequestLog.builder()
+                .planId(planId)
                 .operationType(OperationType.HOLD)
                 .postingBatches(
                         List.of(

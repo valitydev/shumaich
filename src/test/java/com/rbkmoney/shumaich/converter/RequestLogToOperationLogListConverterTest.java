@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.shumaich.TestData;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.helpers.TestData;
 import org.junit.Assert;
 import org.junit.Test;
 

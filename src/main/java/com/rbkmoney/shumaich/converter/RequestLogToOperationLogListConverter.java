@@ -57,7 +57,7 @@ public class RequestLogToOperationLogListConverter {
                         : Math.negateExact(posting.getAmount()))
                 .currencySymbolicCode(posting.getCurrencySymCode())
                 .description(posting.getDescription())
-                .creationTime(creationTime)
+                .creationTime(creationTime.toString())
                 .sequence(sequenceId)
                 .total(totalOperations)
                 .build();

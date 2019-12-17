@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.dao;
 
 import com.rbkmoney.shumaich.RedisTestBase;
-import com.rbkmoney.shumaich.TestData;
-import com.rbkmoney.shumaich.TestUtils;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
+import com.rbkmoney.shumaich.helpers.TestData;
+import com.rbkmoney.shumaich.helpers.TestUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;

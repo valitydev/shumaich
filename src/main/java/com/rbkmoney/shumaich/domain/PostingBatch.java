@@ -12,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostingBatch {
-    private long id;
+    private Long id;
     private List<Posting> postings;
 }
