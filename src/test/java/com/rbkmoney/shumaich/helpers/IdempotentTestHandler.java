@@ -18,6 +18,8 @@ public class IdempotentTestHandler implements Handler<OperationLog> {
     @Override
     public void handle(ConsumerRecords<?, OperationLog> records) {
         for (ConsumerRecord<?, OperationLog> record : records) {
+            if (record.value() == null)
+                continue;
             OperationLog value = record.value();
             receivedRecords.putIfAbsent(value.getPlanId(), new HashSet<>());
             receivedRecords.get(value.getPlanId()).add(value.getSequence());
