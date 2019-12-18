@@ -5,14 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class RequestLog {
-    private String planId;
-    private OperationType operationType;
-    private List<PostingBatch> postingBatches;
+public class Posting {
+    private Long fromId;
+    private Long toId;
+    private Long amount;
+    private String currencySymCode;
+    private String description;
 }

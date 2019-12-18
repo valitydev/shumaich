@@ -1,13 +1,25 @@
 package com.rbkmoney.shumaich.converter;
 
 import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.RequestLog;
-import org.springframework.core.convert.converter.Converter;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
-public class PostingPlanChangeToRequestLogConverter implements Converter<PostingPlanChange, RequestLog> {
+import java.util.List;
+import java.util.stream.Collectors;
 
-    @Override
+@Component
+@RequiredArgsConstructor
+public class PostingPlanChangeToRequestLogConverter {
+
+    private final PostingBatchDamselToPostingBatchConverter converter;
+
     public RequestLog convert(PostingPlanChange source) {
-        return null;
+        return RequestLog.builder()
+                .planId(source.id)
+                .operationType(OperationType.HOLD)
+                .postingBatches(List.of(source.batch).stream().map(converter::convert).collect(Collectors.toList()))
+                .build();
     }
 }

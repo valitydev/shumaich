@@ -1,4 +1,4 @@
-package com.rbkmoney.shumaich;
+package com.rbkmoney.shumaich.helpers;
 
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import org.springframework.data.redis.core.HashOperations;

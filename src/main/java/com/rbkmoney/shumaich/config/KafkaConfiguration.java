@@ -18,6 +18,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -93,11 +95,12 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
+    public KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
-        KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(configs), true);
+        KafkaTemplate<Long, OperationLog> kafkaTemplate = new KafkaTemplate<>(
+                new DefaultKafkaProducerFactory<>(configs), false);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }
@@ -135,10 +138,11 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
+    public TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetDao kafkaOffsetDao,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
 
         TopicDescription topicDescription = kafkaAdminClient
