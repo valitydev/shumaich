@@ -7,9 +7,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static com.rbkmoney.shumaich.domain.OperationType.COMMIT;
 import static com.rbkmoney.shumaich.domain.OperationType.HOLD;
@@ -25,7 +26,7 @@ public class ProofOfConceptTest {
     }
 
     @Test
-    public void testSimpleFlow() {
+    public void simpleFlow() {
         server.initAccs(Utils.createAccounts());
 
         List<Integer> clock = server.makeOperation(Utils.createPlan("1", HOLD, 1));
@@ -36,7 +37,7 @@ public class ProofOfConceptTest {
     }
 
     @Test
-    public void testSimpleFlowWithRepeatedRecords() {
+    public void simpleFlowWithRepeatedRecords() {
         server.initAccs(Utils.createAccounts());
 
         List<Integer> clock = server.makeOperation(Utils.createPlan("1", HOLD, 1));
@@ -48,7 +49,7 @@ public class ProofOfConceptTest {
     }
 
     @Test
-    public void testTwoPlansWithRepeatedRecords() {
+    public void twoPlansWithRepeatedRecords() {
         server.initAccs(Utils.createAccounts());
 
         List<Integer> clock1 = server.makeOperation(Utils.createPlan("1", HOLD, 1));
@@ -132,27 +133,20 @@ public class ProofOfConceptTest {
         Assert.assertTrue(server.getBalance(0).getOwnAmount().get() >= 0);
     }
 
-
     @Test
     public void concurrentCircularPayments() throws InterruptedException {
         server.initAcc(0, new Balance(100, 100, 100));
         server.initAcc(1, new Balance(0, 0, 0));
 
         ExecutorService executorService = Executors.newFixedThreadPool(16);
-        List<Future<?>> futures = new ArrayList<>();
 
         for (int i = 0; i < 1000; i++) {
-            futures.add(executorService.submit(new Client(server, 0, 1, 100, "a" + i)));
-            futures.add(executorService.submit(new Client(server, 1, 0, 100, "b" + i)));
+            executorService.submit(new Client(server, 0, 1, 100, "a" + i));
+            executorService.submit(new Client(server, 1, 0, 100, "b" + i));
         }
 
-        futures.forEach(future -> {
-            try {
-                future.get(1, TimeUnit.MINUTES);
-            } catch (InterruptedException | TimeoutException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        });
+        executorService.shutdownNow();
+        executorService.awaitTermination(1, TimeUnit.MINUTES);
 
         server.calculateBalancesToLatest();
 
