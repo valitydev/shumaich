@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.proofofconcept;
 
 import com.rbkmoney.shumaich.proofofconcept.domain.Balance;
-import com.rbkmoney.shumaich.proofofconcept.domain.BalanceNotReadyException;
 import com.rbkmoney.shumaich.proofofconcept.domain.Plan;
 import com.rbkmoney.shumaich.proofofconcept.domain.PlanTransaction;
+import com.rbkmoney.shumaich.proofofconcept.domain.exception.NotReadyException;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -42,7 +42,7 @@ public class Server {
 
     public Balance getBalance(Integer accountId, List<Integer> clock) {
         if (balancesOffsets.get(accountId % PARTITIONS_NUM) < clock.get(accountId % PARTITIONS_NUM))
-            throw new BalanceNotReadyException();
+            throw new NotReadyException();
         log.info("balances:{}", balances);
         return balances.get(accountId % PARTITIONS_NUM);
     }

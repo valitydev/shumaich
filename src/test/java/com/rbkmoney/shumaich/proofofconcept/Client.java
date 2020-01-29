@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.proofofconcept;
 
 import com.rbkmoney.shumaich.proofofconcept.domain.Balance;
-import com.rbkmoney.shumaich.proofofconcept.domain.BalanceNotReadyException;
 import com.rbkmoney.shumaich.proofofconcept.domain.Plan;
+import com.rbkmoney.shumaich.proofofconcept.domain.exception.NotReadyException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +36,7 @@ public class Client implements Runnable {
             try {
                 balance = server.getBalance(accFrom, clock);
                 break;
-            } catch (BalanceNotReadyException ex) {}
+            } catch (NotReadyException ex) {}
         }
 
         if (balance.getMinAmount().get() >= 0) {

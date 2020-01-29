@@ -1,7 +1,9 @@
 package com.rbkmoney.shumaich.proofofconcept;
 
 import com.rbkmoney.shumaich.proofofconcept.domain.Balance;
-import com.rbkmoney.shumaich.proofofconcept.domain.BalanceNotReadyException;
+import com.rbkmoney.shumaich.proofofconcept.domain.exception.InvalidPostingsException;
+import com.rbkmoney.shumaich.proofofconcept.domain.exception.NoHoldForFinalOperationException;
+import com.rbkmoney.shumaich.proofofconcept.domain.exception.NotReadyException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,7 +90,7 @@ public class ProofOfConceptTest {
         Utils.checkBalance(server.getBalance(1, clock), 73200, 73200, 73200);
     }
 
-    @Test(expected = BalanceNotReadyException.class)
+    @Test(expected = NotReadyException.class)
     public void balanceIsNotReady() {
         server.initAccs(Utils.createAccounts());
 
@@ -108,7 +110,7 @@ public class ProofOfConceptTest {
         Utils.checkBalance(server.getBalance(1, clock), 0, -6800, 80000);
     }
 
-    @Test(expected = BalanceNotReadyException.class)
+    @Test(expected = NotReadyException.class)
     public void balanceIsNotReadyForOneOfAccounts() {
         server.initAccs(Utils.createAccounts());
 
@@ -162,5 +164,35 @@ public class ProofOfConceptTest {
             Utils.checkBalance(balance1, 100, 100, 100);
         }
     }
+
+    @Test(expected = NotReadyException.class)
+    public void makeHoldBeforeInitOfAccs() {}
+
+    @Test(expected = NotReadyException.class)
+    public void accsNotFoundForHold() {}
+
+    @Test(expected = NoHoldForFinalOperationException.class)
+    public void holdNotFoundForFinalOp() {}
+
+    @Test(expected = InvalidPostingsException.class)
+    public void commitPostingsAreDifferentFromHoldPostings() {}
+
+    @Test(expected = NotReadyException.class)
+    public void getStatusWhenNotReady() {}
+
+    @Test
+    public void getCreateAccountStatus() {}
+
+    @Test
+    public void getHoldStatus() {}
+
+    @Test
+    public void holdStatusFailed() {}
+
+    @Test
+    public void holdInvalidPostings() {}
+
+
+
 
 }
