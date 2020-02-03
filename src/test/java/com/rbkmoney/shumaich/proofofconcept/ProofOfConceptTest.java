@@ -165,11 +165,8 @@ public class ProofOfConceptTest {
         }
     }
 
-    @Test(expected = NotReadyException.class)
-    public void makeHoldBeforeInitOfAccs() {}
-
-    @Test(expected = NotReadyException.class)
-    public void accsNotFoundForHold() {}
+    @Test
+    public void accsNotFoundForHoldAndCreatedLazily() {}
 
     @Test(expected = NoHoldForFinalOperationException.class)
     public void holdNotFoundForFinalOp() {}
@@ -178,21 +175,9 @@ public class ProofOfConceptTest {
     public void commitPostingsAreDifferentFromHoldPostings() {}
 
     @Test(expected = NotReadyException.class)
-    public void getStatusWhenNotReady() {}
-
-    @Test
-    public void getCreateAccountStatus() {}
-
-    @Test
-    public void getHoldStatus() {}
-
-    @Test
-    public void holdStatusFailed() {}
+    public void commitBeforeHoldWasRead() {}
 
     @Test
     public void holdInvalidPostings() {}
-
-
-
 
 }
