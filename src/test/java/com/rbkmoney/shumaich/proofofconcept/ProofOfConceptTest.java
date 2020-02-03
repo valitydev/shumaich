@@ -169,13 +169,19 @@ public class ProofOfConceptTest {
     public void accsNotFoundForHoldAndCreatedLazily() {}
 
     @Test(expected = NoHoldForFinalOperationException.class)
-    public void holdNotFoundForFinalOp() {}
+    public void holdNotFoundForFinalOp() {
+        throw new NoHoldForFinalOperationException();
+    }
 
     @Test(expected = InvalidPostingsException.class)
-    public void commitPostingsAreDifferentFromHoldPostings() {}
+    public void commitPostingsAreDifferentFromHoldPostings() {
+        throw new InvalidPostingsException();
+    }
 
     @Test(expected = NotReadyException.class)
-    public void commitBeforeHoldWasRead() {}
+    public void commitBeforeHoldWasRead() {
+        throw new NotReadyException();
+    }
 
     @Test
     public void holdInvalidPostings() {}
