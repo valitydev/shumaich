@@ -67,6 +67,9 @@ public class KafkaOffsetDao {
         } catch (RocksDBException e) {
             log.error("Putting to writeBatch exception:{}", kafkaOffsets, e);
             throw new RuntimeException();
+        } finally {
+            writeBatch.close();
+            writeOptions.close();
         }
     }
 
