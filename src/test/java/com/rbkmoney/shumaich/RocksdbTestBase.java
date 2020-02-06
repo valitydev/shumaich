@@ -1,32 +1,34 @@
 package com.rbkmoney.shumaich;
 
 
-import com.rbkmoney.shumaich.config.RedisConfiguration;
+import com.rbkmoney.shumaich.config.RocksDbConfiguration;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.ClassRule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.GenericContainer;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@ContextConfiguration(initializers = RedisTestBase.Initializer.class, classes = RedisConfiguration.class)
-public abstract class RedisTestBase {
+@ContextConfiguration(initializers = RocksdbTestBase.Initializer.class, classes = RocksDbConfiguration.class)
+
+public abstract class RocksdbTestBase {
 
     @ClassRule
-    public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
-            .withExposedPorts(6379);
+    public static TemporaryFolder folder = new TemporaryFolder();
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @SneakyThrows
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
-                    .of("redis.host=" + redis.getContainerIpAddress(),
-                            "redis.port=" + redis.getMappedPort(6379))
+                    .of("rocksdb.name=test" ,
+                            "rocksdb.dir=" + folder.newFolder())
                     .applyTo(configurableApplicationContext.getEnvironment());
         }
     }

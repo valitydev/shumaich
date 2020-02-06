@@ -1,10 +1,8 @@
 package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
-import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.RequestLog;
-import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.OperationLogHandlingService;
 import com.rbkmoney.shumaich.service.RequestLogHandlingService;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ContextConfiguration;
 
@@ -48,12 +45,9 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
     @Autowired
     TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager;
 
-    @Autowired
-    RedisTemplate<String, KafkaOffset> kafkaOffsetRedisTemplate;
 
     @Before
     public void clear() throws InterruptedException {
-        TestUtils.deleteOffsets(kafkaOffsetRedisTemplate);
         requestLogTopicConsumptionManager.shutdownConsumers();
     }
 

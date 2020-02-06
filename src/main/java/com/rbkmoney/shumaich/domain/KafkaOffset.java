@@ -5,12 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import org.apache.kafka.common.TopicPartition;
 
-import java.io.Serializable;
-
 @Data
 @Builder
 @AllArgsConstructor
-public class KafkaOffset implements Serializable {
+public class KafkaOffset {
     private TopicPartition topicPartition;
     private Long offset;
 }
