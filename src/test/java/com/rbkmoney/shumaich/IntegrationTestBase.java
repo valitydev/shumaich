@@ -6,6 +6,7 @@ import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.RequestLog;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.service.Handler;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -13,6 +14,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +28,6 @@ import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.testcontainers.containers.GenericContainer;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(classes = ShumaichApplication.class)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public abstract class IntegrationTestBase {
@@ -59,16 +60,16 @@ public abstract class IntegrationTestBase {
             REQUEST_LOG_TOPIC, OPERATION_LOG_TOPIC);
 
     @ClassRule
-    public static GenericContainer<?> redis = new GenericContainer<>("redis:5.0.7")
-            .withExposedPorts(6379);
+    public static TemporaryFolder folder = new TemporaryFolder();
 
     public static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        @SneakyThrows
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
                     .of("kafka.bootstrap.servers=" + kafka.getEmbeddedKafka().getBrokersAsString(),
-                            "redis.host=" + redis.getContainerIpAddress(),
-                            "redis.port=" + redis.getMappedPort(6379))
+                            "rocksdb.name=test" ,
+                            "rocksdb.dir=" + folder.newFolder())
                     .applyTo(configurableApplicationContext.getEnvironment());
         }
     }

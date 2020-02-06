@@ -18,9 +18,9 @@ spring:
     ansi:
       enabled: always
 
-redis:
-  host: localhost
-  port: 6379
+rocksdb:
+  name: "test"
+  dir: "test"
 
 kafka:
   bootstrap.servers: "localhost:29092"
