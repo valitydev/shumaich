@@ -13,7 +13,7 @@ public class OperationLog {
     private String planId;
     private Long batchId;
     private OperationType operationType;
-    private Long account;
+    private Account account;
     private Long amountWithSign;
     private String currencySymbolicCode;
     private String description;

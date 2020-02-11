@@ -1,7 +1,6 @@
 package com.rbkmoney.shumaich.handler;
 
 import com.rbkmoney.damsel.shumpune.*;
-import com.rbkmoney.woody.api.flow.error.WUnavailableResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -13,85 +12,27 @@ import org.springframework.stereotype.Component;
 public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
     @Override
-    public ClockState hold(PostingPlanChange postingPlanChange) throws TException {
-        log.info("Start hold postingPlanChange: {}", postingPlanChange);
-        try {
-            return null;
-        } catch (Exception ex) {
-            // retryable
-            log.error("Some exception", ex);
-            throw new WUnavailableResultException(ex);
-        } catch (Throwable e) {
-            //not
-            log.error("Failed e", e);
-            throw new TException(e);
-        }
+    public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws InvalidPostingParams, TException {
+        return null;
     }
 
     @Override
-    public ClockState commitPlan(PostingPlan postingPlan, ClockState state) throws TException {
-        log.info("Start commitPlan postingPlan: {}", postingPlan);
-        try {
-            return null;
-        } catch (Exception ex) {
-            // retryable
-            log.error("Some exception", ex);
-            throw new WUnavailableResultException(ex);
-        } catch (Throwable e) {
-            //not
-            log.error("Failed e", e);
-            throw new TException(e);
-        }
+    public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+        return null;
     }
 
     @Override
-    public ClockState rollbackPlan(PostingPlan postingPlan, ClockState state) throws TException {
-        log.info("Start rollbackPlan postingPlan: {}", postingPlan);
-        try {
-            return null;
-        } catch (Exception ex) {
-            // retryable
-            log.error("Some exception", ex);
-            throw new WUnavailableResultException(ex);
-        } catch (Throwable e) {
-            //not
-            log.error("Failed e", e);
-            throw new TException(e);
-        }
+    public Clock rollbackPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+        return null;
     }
 
     @Override
-    public Account getAccountByID(long accountId, ClockState state) throws TException {
-        log.info("Start getAccountByID accountId: {}", accountId);
-        try {
-            //todo code
-            return null;
-        } catch (Exception ex) {
-            // retryable
-            log.error("Some exception", ex);
-            throw new WUnavailableResultException(ex);
-        } catch (Throwable e) {
-            //not
-            log.error("Failed e", e);
-            throw new TException(e);
-        }
+    public Balance getBalanceByID(String s, Clock clock) throws AccountNotFound, NotReady, TException {
+        return null;
     }
 
     @Override
-    public Balance getBalanceByID(long accountId, ClockState state) throws TException {
-        log.info("Start getBalanceByID accountId: {} clock: {}", accountId, state);
-        try {
-            //todo code
-            return null;
-        } catch (Exception ex) {
-            // retryable
-            log.error("Some exception", ex);
-            throw new WUnavailableResultException(ex);
-        } catch (Throwable e) {
-            //not
-            log.error("Failed e", e);
-            throw new TException(e);
-        }
+    public Account getAccountByID(String s, Clock clock) throws AccountNotFound, NotReady, TException {
+        return null;
     }
-
 }

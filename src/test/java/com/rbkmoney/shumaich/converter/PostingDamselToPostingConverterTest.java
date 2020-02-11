@@ -9,16 +9,17 @@ public class PostingDamselToPostingConverterTest {
 
     PostingDamselToPostingConverter converter = new PostingDamselToPostingConverter();
 
-    //todo
     @Test
     public void conversion() {
         Posting postingDamsel = TestData.postingDamsel();
         var posting = converter.convert(postingDamsel);
 
         Assert.assertEquals(postingDamsel.amount, posting.getAmount().longValue());
-//        Assert.assertEquals(postingDamsel.from_id, posting.getFromId().longValue());
-//        Assert.assertEquals(postingDamsel.to_id, posting.getToId().longValue());
-//        Assert.assertEquals(postingDamsel.currency_sym_code, posting.getCurrencySymCode());
+        Assert.assertEquals(postingDamsel.from_account.currency_sym_code, posting.getFromAccount().getCurrencySymblolicCode());
+        Assert.assertEquals(postingDamsel.from_account.id, posting.getFromAccount().getId());
+        Assert.assertEquals(postingDamsel.to_account.currency_sym_code, posting.getToAccount().getCurrencySymblolicCode());
+        Assert.assertEquals(postingDamsel.to_account.id, posting.getToAccount().getId());
+        Assert.assertEquals(postingDamsel.currency_sym_code, posting.getCurrencySymbolicCode());
         Assert.assertEquals(postingDamsel.description, posting.getDescription());
     }
 

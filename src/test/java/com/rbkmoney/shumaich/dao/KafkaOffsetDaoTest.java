@@ -4,6 +4,7 @@ import com.rbkmoney.shumaich.RocksdbTestBase;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.helpers.TestData;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.rocksdb.RocksDB;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.io.IOException;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +25,12 @@ public class KafkaOffsetDaoTest extends RocksdbTestBase {
 
     @Autowired
     RocksDB rocksDB;
+
+    @After
+    public void cleanup() throws IOException {
+        folder.delete();
+        folder.create();
+    }
 
     @Test
     public void saveAndLoad() {

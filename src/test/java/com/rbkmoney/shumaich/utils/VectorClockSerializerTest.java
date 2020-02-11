@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.utils;
 
-import com.rbkmoney.damsel.shumpune.VectorClockState;
+import com.rbkmoney.damsel.shumpune.VectorClock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,7 +10,7 @@ public class VectorClockSerializerTest {
 
     @Test
     public void serialize() {
-        VectorClockState clock = VectorClockSerializer.serialize(CLOCK_TEST);
+        VectorClock clock = VectorClockSerializer.serialize(CLOCK_TEST);
 
         Assert.assertNotNull(clock);
 

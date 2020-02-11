@@ -2,7 +2,7 @@ package com.rbkmoney.shumaich.converter;
 
 import com.rbkmoney.damsel.shumpune.PostingPlan;
 import com.rbkmoney.shumaich.domain.OperationType;
-import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -10,15 +10,16 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class PostingPlanToRequestLogConverter {
+public class PostingPlanToPostingPlanOperationConverter {
 
     private final PostingBatchDamselToPostingBatchConverter converter;
 
-    public RequestLog convert(PostingPlan source, OperationType operationType) {
-        return RequestLog.builder()
-                .planId(source.id)
-                .operationType(operationType)
+    PostingPlanOperation convert(PostingPlan source, OperationType operationType) {
+        return PostingPlanOperation.builder()
+                .planId(source.getId())
                 .postingBatches(source.batch_list.stream().map(converter::convert).collect(Collectors.toList()))
+                .operationType(operationType)
                 .build();
     }
+
 }

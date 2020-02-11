@@ -15,7 +15,6 @@ public class PostingBatchDamselToPostingBatchConverterTest {
     public void conversion() {
         PostingBatch postingBatchDamsel = TestData.postingBatchDamsel();
         var postingBatch = converter.convert(postingBatchDamsel);
-
         Assert.assertEquals(postingBatchDamsel.id, postingBatch.getId().longValue());
         Assert.assertEquals(postingBatchDamsel.getPostings().size(), postingBatch.getPostings().size());
     }
