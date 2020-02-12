@@ -1,9 +1,6 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumpune.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,22 +16,22 @@ public class PostingGenerator {
         batch.setId(BATCH_ID);
         ArrayList<Posting> postings = new ArrayList<>();
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(300000)
-//                .setFromId(providerAcc)
-//                .setToId(merchantAcc)
+                .setFromAccount(new Account("" + providerAcc, "RUB"))
+                .setToAccount(new Account("" + merchantAcc, "RUB"))
                 .setDescription("qwe"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(9000)
-//                .setFromId(merchantAcc)
-//                .setToId(systemAcc)
+                .setFromAccount(new Account("" + merchantAcc, "RUB"))
+                .setToAccount(new Account("" + systemAcc, "RUB"))
                 .setDescription("qwe"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(6000)
-//                .setFromId(systemAcc)
-//                .setToId(providerAcc)
+                .setFromAccount(new Account("" + systemAcc, "RUB"))
+                .setToAccount(new Account("" + providerAcc, "RUB"))
                 .setDescription("qwe"));
         batch.setPostings(postings);
         return batch;
@@ -46,22 +43,22 @@ public class PostingGenerator {
         batch.setId(BATCH_ID);
         ArrayList<Posting> postings = new ArrayList<>();
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(amount)
-//                .setFromId(providerAcc)
-//                .setToId(merchantAcc)
+                .setFromAccount(new Account("" + providerAcc, "RUB"))
+                .setToAccount(new Account("" + merchantAcc, "RUB"))
                 .setDescription("qwe"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(amount)
-//                .setFromId(merchantAcc)
-//                .setToId(systemAcc)
+                .setFromAccount(new Account("" + merchantAcc, "RUB"))
+                .setToAccount(new Account("" + systemAcc, "RUB"))
                 .setDescription("qwe"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(amount)
-//                .setFromId(systemAcc)
-//                .setToId(providerAcc)
+                .setFromAccount(new Account("" + systemAcc, "RUB"))
+                .setToAccount(new Account("" + providerAcc, "RUB"))
                 .setDescription("qwe"));
         batch.setPostings(postings);
         return batch;
@@ -73,28 +70,28 @@ public class PostingGenerator {
         batch.setId(BATCH_ID);
         ArrayList<Posting> postings = new ArrayList<>();
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(2800 * multiplier)
-//                .setFromId(firstAcc)
-//                .setToId(secAcc)
+                .setFromAccount(new Account("" + firstAcc, "RUB"))
+                .setToAccount(new Account("" + secAcc, "RUB"))
                 .setDescription("1->2"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(4000 * multiplier)
-//                .setFromId(firstAcc)
-//                .setToId(thirdAcc)
+                .setFromAccount(new Account("" + firstAcc, "RUB"))
+                .setToAccount(new Account("" + thirdAcc, "RUB"))
                 .setDescription("1->3"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(80000 * multiplier)
-//                .setFromId(fourthAcc)
-//                .setToId(firstAcc)
+                .setFromAccount(new Account("" + fourthAcc, "RUB"))
+                .setToAccount(new Account("" + firstAcc, "RUB"))
                 .setDescription("4->1"));
         postings.add(new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(1760 * multiplier)
-//                .setFromId(secAcc)
-//                .setToId(fourthAcc)
+                .setFromAccount(new Account("" + secAcc, "RUB"))
+                .setToAccount(new Account("" + fourthAcc, "RUB"))
                 .setDescription("4->2"));
         batch.setPostings(postings);
         return batch;
@@ -144,10 +141,10 @@ public class PostingGenerator {
 
     public static Posting createPosting() {
         return new Posting()
-//                .setCurrencySymCode("RUB")
+                .setCurrencySymCode("RUB")
                 .setAmount(1)
-//                .setFromId(1L)
-//                .setToId(2L)
+                .setFromAccount(new Account("1", "RUB"))
+                .setToAccount(new Account("2", "RUB"))
                 .setDescription("test");
     }
 }

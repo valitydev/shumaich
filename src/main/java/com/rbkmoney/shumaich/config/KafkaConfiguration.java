@@ -2,12 +2,9 @@ package com.rbkmoney.shumaich.config;
 
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.domain.RequestLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
-import com.rbkmoney.shumaich.kafka.serde.RequestLogDeserializer;
-import com.rbkmoney.shumaich.kafka.serde.RequestLogSerializer;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -18,8 +15,6 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.apache.kafka.common.serialization.LongSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -85,21 +80,11 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public KafkaTemplate<String, RequestLog> requestLogKafkaTemplate() {
+    public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
-        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, RequestLogSerializer.class);
-        KafkaTemplate<String, RequestLog> kafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(configs), true);
-        kafkaTemplate.setDefaultTopic(requestLogTopicName);
-        return kafkaTemplate;
-    }
-
-    @Bean
-    public KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate() {
-        Map<String, Object> configs = producerConfig();
-        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
-        KafkaTemplate<Long, OperationLog> kafkaTemplate = new KafkaTemplate<>(
+        KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
                 new DefaultKafkaProducerFactory<>(configs), false);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
@@ -116,33 +101,11 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    public TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager(AdminClient kafkaAdminClient,
-                                                                                         KafkaOffsetDao kafkaOffsetDao,
-                                                                                         Handler<RequestLog> handler) throws ExecutionException, InterruptedException {
-        Map<String, Object> consumerProps = consumerConfig();
-        consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, RequestLogDeserializer.class);
-
-        TopicDescription topicDescription = kafkaAdminClient
-                .describeTopics(List.of(requestLogTopicName))
-                .values()
-                .get(requestLogTopicName)
-                .get();
-
-        return new TopicConsumptionManager<>(topicDescription,
-                partitionsPerThread,
-                consumerProps,
-                kafkaOffsetDao,
-                handler,
-                pollingTimeout
-        );
-    }
-
-    @Bean
-    public TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
+    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetDao kafkaOffsetDao,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
 
         TopicDescription topicDescription = kafkaAdminClient

@@ -2,11 +2,12 @@ package com.rbkmoney.shumaich.service;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,34 +20,38 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
-import static org.mockito.ArgumentMatchers.any;
-
 @Slf4j
-@ContextConfiguration(classes = {RequestLogHandlingServiceIntegrationTest.Config.class})
-public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBase {
+@ContextConfiguration(classes = {OperationLogHandlingServiceIntegrationTest.Config.class})
+public class OperationLogHandlingServiceIntegrationTest extends IntegrationTestBase {
 
     @SpyBean
-    KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
+    KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
 
     @Autowired
     IdempotentTestHandler handler;
 
     @Autowired
-    TopicConsumptionManager<String, RequestLog> requestLogTopicConsumptionManager;
-
+    TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
 
     @Before
     public void clear() throws InterruptedException {
-        requestLogTopicConsumptionManager.shutdownConsumers();
+        operationLogTopicConsumptionManager.shutdownConsumers();
+    }
+
+    @After
+    public void cleanup() throws IOException {
+        folder.delete();
+        folder.create();
     }
 
     @Test
     public void successEventPropagation() throws InterruptedException, ExecutionException {
         String testPlanId = "plan1";
-        RequestLog plan = TestData.requestLog(testPlanId);
-        sendRequestLogToPartition(plan);
+        PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
+        sendPlanToPartition(plan);
 
         Thread.sleep(6000);
 
@@ -57,24 +62,6 @@ public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBas
                 handler.countReceivedRecords(testPlanId).intValue());
     }
 
-    @Test
-    public void kafkaTemplateSendingErrorRetried() throws InterruptedException {
-        Mockito.when(operationLogKafkaTemplate.sendDefault(any(), any()))
-                .thenThrow(RuntimeException.class)
-                .thenCallRealMethod();
-
-        String testPlanId = "plan2";
-        RequestLog plan = TestData.requestLog(testPlanId);
-        sendRequestLogToPartition(plan);
-
-        Thread.sleep(6000);
-
-        int totalPostings = plan.getPostingBatches().stream()
-                .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
-
-        Assert.assertEquals(totalPostings * 2,
-                handler.countReceivedRecords(testPlanId).intValue());
-    }
 
     @Test
     public void kafkaTemplateFlushErrorRetried() throws InterruptedException {
@@ -83,8 +70,8 @@ public class RequestLogHandlingServiceIntegrationTest extends IntegrationTestBas
                 .when(operationLogKafkaTemplate).flush();
 
         String testPlanId = "plan3";
-        RequestLog plan = TestData.requestLog(testPlanId);
-        sendRequestLogToPartition(plan);
+        PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
+        sendPlanToPartition(plan);
 
         Thread.sleep(6000);
 

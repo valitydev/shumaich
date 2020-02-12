@@ -1,9 +1,11 @@
 package com.rbkmoney.shumaich;
 
 
+import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.service.Handler;
 import lombok.SneakyThrows;
@@ -36,12 +38,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.rbkmoney.shumaich.helpers.TestData.OPERATION_LOG_TOPIC;
-import static com.rbkmoney.shumaich.helpers.TestData.REQUEST_LOG_TOPIC;
 import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
 @RunWith(SpringRunner.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(classes = ShumaichApplication.class)
 @ContextConfiguration(initializers = IntegrationTestBase.Initializer.class)
 public abstract class IntegrationTestBase {
@@ -50,14 +51,17 @@ public abstract class IntegrationTestBase {
     protected AdminClient kafkaAdminClient;
 
     @Autowired
-    protected KafkaTemplate<String, RequestLog> requestLogKafkaTemplate;
+    protected KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
+
+    @Autowired
+    private PostingPlanOperationToOperationLogListConverter converter;
 
     @SpyBean
     protected KafkaOffsetDao kafkaOffsetDao;
 
     @ClassRule
     public static EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
-            REQUEST_LOG_TOPIC, OPERATION_LOG_TOPIC);
+            OPERATION_LOG_TOPIC, OPERATION_LOG_TOPIC);
 
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder();
@@ -123,13 +127,22 @@ public abstract class IntegrationTestBase {
                 .handle(any());
     }
 
-    protected void sendRequestLogToPartition(int partitionNumber) {
-        RequestLog requestLog = TestData.requestLog();
-        requestLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
+
+    protected void sendPlanToPartition(PostingPlanOperation plan) {
+        List<OperationLog> operationLogs = converter.convert(plan);
+        for (OperationLog operationLog : operationLogs) {
+            sendOperationLogToPartition(operationLog);
+        }
+
     }
 
-    protected void sendRequestLogToPartition(RequestLog requestLog) {
-        requestLogKafkaTemplate.sendDefault(requestLog.getPlanId(), requestLog);
+    protected void sendOperationLogToPartition(int partitionNumber) {
+        OperationLog requestLog = TestData.operationLog();
+        operationLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
+    }
+
+    protected void sendOperationLogToPartition(OperationLog operationLog) {
+        operationLogKafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog);
     }
 
 }

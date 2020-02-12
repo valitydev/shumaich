@@ -1,18 +1,21 @@
 package com.rbkmoney.shumaich.domain;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Posting {
-    private Account fromAccount;
-    private Account toAccount;
-    private Long amount;
-    private String currencySymbolicCode;
-    private String description;
+public class PostingPlanOperation {
+
+    private String planId;
+    private List<PostingBatch> postingBatches;
+    private OperationType operationType;
+
 }

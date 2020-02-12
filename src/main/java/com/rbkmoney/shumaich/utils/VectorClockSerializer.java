@@ -1,16 +1,16 @@
 package com.rbkmoney.shumaich.utils;
 
-import com.rbkmoney.damsel.shumpune.VectorClockState;
+import com.rbkmoney.damsel.shumpune.VectorClock;
 
 import java.nio.ByteBuffer;
 
 public class VectorClockSerializer {
 
-    public static VectorClockState serialize(String clock) {
-        return new VectorClockState(ByteBuffer.wrap(clock.getBytes()));
+    public static VectorClock serialize(String clock) {
+        return new VectorClock(ByteBuffer.wrap(clock.getBytes()));
     }
 
-    public static String deserialize(VectorClockState clock) {
+    public static String deserialize(VectorClock clock) {
         return new String(clock.getState());
     }
 

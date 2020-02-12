@@ -3,7 +3,7 @@ package com.rbkmoney.shumaich.converter;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
-import com.rbkmoney.shumaich.domain.RequestLog;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -13,9 +13,9 @@ import java.util.PrimitiveIterator;
 import java.util.stream.LongStream;
 
 @Component
-public class RequestLogToOperationLogListConverter {
+public class PostingPlanOperationToOperationLogListConverter {
 
-    public List<OperationLog> convert(RequestLog source) {
+    public List<OperationLog> convert(PostingPlanOperation source) {
         List<OperationLog> operationLogs = new ArrayList<>();
         // Each posting will be divided into 2 operations
         long totalOperations = 2 * source.getPostingBatches().stream()
@@ -38,7 +38,7 @@ public class RequestLogToOperationLogListConverter {
         return operationLogs;
     }
 
-    private OperationLog createOperationLog(RequestLog source,
+    private OperationLog createOperationLog(PostingPlanOperation source,
                                             long totalOperations,
                                             Long sequenceId,
                                             Instant creationTime,
@@ -50,12 +50,12 @@ public class RequestLogToOperationLogListConverter {
                 .batchId(postingBatch.getId())
                 .operationType(source.getOperationType())
                 .account(first
-                        ? posting.getToId()
-                        : posting.getFromId())
+                        ? posting.getToAccount()
+                        : posting.getFromAccount())
                 .amountWithSign(first
                         ? posting.getAmount()
                         : Math.negateExact(posting.getAmount()))
-                .currencySymbolicCode(posting.getCurrencySymCode())
+                .currencySymbolicCode(posting.getCurrencySymbolicCode())
                 .description(posting.getDescription())
                 .creationTime(creationTime.toString())
                 .sequence(sequenceId)
