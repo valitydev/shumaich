@@ -4,7 +4,7 @@ import com.rbkmoney.damsel.shumpune.VectorClock;
 
 import java.nio.ByteBuffer;
 
-public class VectorClockSerializer {
+public class VectorClockSerde {
 
     public static VectorClock serialize(String clock) {
         return new VectorClock(ByteBuffer.wrap(clock.getBytes()));

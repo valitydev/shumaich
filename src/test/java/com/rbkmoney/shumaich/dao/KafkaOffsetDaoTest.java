@@ -84,4 +84,50 @@ public class KafkaOffsetDaoTest extends RocksdbTestBase {
 
     }
 
+    @Test
+    public void checkOffsetsOrder() {
+        kafkaOffsetDao.saveOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 10L)
+        ));
+
+        Assert.assertFalse(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 10L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 10L)
+        )));
+
+        Assert.assertTrue(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 9L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 6L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 1L)
+        )));
+
+        Assert.assertTrue(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 6L)
+        )));
+
+        Assert.assertTrue(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 6L)
+        )));
+
+        Assert.assertFalse(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 10L)
+        )));
+
+        Assert.assertFalse(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 15L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 15L)
+        )));
+
+        Assert.assertFalse(kafkaOffsetDao.isBeforeCurrentOffsets(List.of(
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 1, 1L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 2, 15L),
+                TestData.kafkaOffset(TestData.TEST_TOPIC, 3, 15L)
+        )));
+
+    }
+
 }

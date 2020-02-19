@@ -73,8 +73,21 @@ public class KafkaOffsetDao {
         }
     }
 
-    private List<byte[]> convertToKey(Collection<TopicPartition> topicPartitions) {
-        return topicPartitions.stream().map(TopicPartition::toString).map(String::getBytes).collect(Collectors.toList());
+    public boolean isBeforeCurrentOffsets(List<KafkaOffset> clockKafkaOffsets) {
+        List<KafkaOffset> currentOffsets = this.loadOffsets(
+                clockKafkaOffsets.stream()
+                        .map(KafkaOffset::getTopicPartition)
+                        .collect(Collectors.toList())
+        );
+
+        Map<Integer, Long> currentOffsetsLookupMap = currentOffsets.stream()
+                .collect(
+                        Collectors.toMap(ko -> ko.getTopicPartition().partition(), KafkaOffset::getOffset)
+                );
+
+        return clockKafkaOffsets.stream()
+                .allMatch(kafkaOffset ->
+                        currentOffsetsLookupMap.get(kafkaOffset.getTopicPartition().partition()) > kafkaOffset.getOffset());
     }
 
     private Map<String, Long> convertToMap(List<KafkaOffset> kafkaOffsets) {
@@ -85,5 +98,4 @@ public class KafkaOffsetDao {
                 )
         );
     }
-
 }

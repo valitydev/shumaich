@@ -19,7 +19,7 @@ public class PostingPlanChangeToPostingPlanOperationConverterTest {
 
     @Test
     public void convert() {
-        PostingPlanOperation plan = converter.convert(TestData.postingPlanChange(), HOLD);
+        PostingPlanOperation plan = converter.convert(TestData.postingPlanChange());
         Assert.assertEquals("plan", plan.getPlanId());
         Assert.assertEquals(HOLD, plan.getOperationType());
         for (PostingBatch postingBatch : plan.getPostingBatches()) {

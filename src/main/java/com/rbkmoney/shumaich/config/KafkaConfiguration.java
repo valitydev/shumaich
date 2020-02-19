@@ -44,9 +44,6 @@ public class KafkaConfiguration {
     @Value("${kafka.topics.polling-timeout}")
     private Long pollingTimeout;
 
-    @Value("${kafka.topics.request-log-name}")
-    private String requestLogTopicName;
-
     @Value("${kafka.topics.operation-log-name}")
     private String operationLogTopicName;
 
@@ -85,7 +82,7 @@ public class KafkaConfiguration {
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
         KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(configs), false);
+                new DefaultKafkaProducerFactory<>(configs), true);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }

@@ -14,11 +14,11 @@ public class PostingPlanChangeToPostingPlanOperationConverter {
 
     private final PostingBatchDamselToPostingBatchConverter converter;
 
-    PostingPlanOperation convert(PostingPlanChange source, OperationType operationType) {
+    public PostingPlanOperation convert(PostingPlanChange source) {
         return PostingPlanOperation.builder()
                 .planId(source.getId())
                 .postingBatches(List.of(converter.convert(source.batch)))
-                .operationType(operationType)
+                .operationType(OperationType.HOLD)
                 .build();
     }
 }
