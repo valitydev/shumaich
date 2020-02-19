@@ -7,10 +7,7 @@ import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -64,6 +61,7 @@ public class OperationLogHandlingServiceIntegrationTest extends IntegrationTestB
 
 
     @Test
+    @Ignore // cейчас flush() нет, возможно верну и тест верну
     public void kafkaTemplateFlushErrorRetried() throws InterruptedException {
         Mockito.doThrow(RuntimeException.class)
                 .doCallRealMethod()
