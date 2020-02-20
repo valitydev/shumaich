@@ -36,9 +36,12 @@ public class WriterService {
                 recordMetadataList.add(future.get().getRecordMetadata());
             }
             return recordMetadataList;
-        } catch (InterruptedException | ExecutionException e) {
-            log.error("Write operation interrupted or answer from broker timeout, postingPlanOperation:{}",
-                    postingPlanOperation, e);
+        } catch (InterruptedException e) {
+            log.error("Write operation interrupted, postingPlanOperation:{}", postingPlanOperation, e);
+            Thread.currentThread().interrupt();
+            throw new KafkaException();
+        } catch (ExecutionException e) {
+            log.error("Write operation - answer from broker timeout, postingPlanOperation:{}", postingPlanOperation, e);
             throw new KafkaException();
         }
     }
