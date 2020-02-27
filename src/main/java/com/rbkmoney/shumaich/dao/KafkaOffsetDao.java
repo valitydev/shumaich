@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KafkaOffsetDao {
 
-    private final String columnFamilyName = "kafkaOffset";
+    private final static String COLUMN_FAMILY_NAME = "kafkaOffset";
     private ColumnFamilyHandle columnFamilyHandle;
 
     private final RocksDB rocksDB;
 
     @PostConstruct
     public void initializeColumnFamily() throws RocksDBException {
-        this.columnFamilyHandle = rocksDB.createColumnFamily(new ColumnFamilyDescriptor(columnFamilyName.getBytes()));
+        this.columnFamilyHandle = rocksDB.createColumnFamily(new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes()));
     }
 
     @PreDestroy

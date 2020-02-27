@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-@ContextConfiguration(classes = {OperationLogHandlingServiceIntegrationTest.Config.class})
-public class OperationLogHandlingServiceIntegrationTest extends IntegrationTestBase {
+@ContextConfiguration(classes = {OperationLogHandlerServiceIntegrationTest.Config.class})
+public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBase {
 
     @SpyBean
     KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;

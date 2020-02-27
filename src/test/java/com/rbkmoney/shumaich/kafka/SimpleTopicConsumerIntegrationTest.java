@@ -3,7 +3,7 @@ package com.rbkmoney.shumaich.kafka;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.service.Handler;
-import com.rbkmoney.shumaich.service.OperationLogHandlingService;
+import com.rbkmoney.shumaich.service.OperationLogHandlerService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Assert;
@@ -135,7 +135,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         @Bean
         @Primary
         Handler<OperationLog> operationLogHandler() {
-            return mock(OperationLogHandlingService.class);
+            return mock(OperationLogHandlerService.class);
         }
 
     }

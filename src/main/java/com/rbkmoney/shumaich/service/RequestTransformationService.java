@@ -21,7 +21,9 @@ public class RequestTransformationService {
     private final ValidationService validationService;
 
     public Clock registerHold(PostingPlanChange postingPlanChange) {
-        //todo add
+//        validationService.validatePostings(postingPlanChange)
+//        validationService.validateNotDuplicate(postingPlanChange)
+
         List<RecordMetadata> partitionsMetadata = writerService.write(holdConverter.convert(postingPlanChange));
         String clock = clockService.formClock(partitionsMetadata);
         return Clock.vector(VectorClockSerde.serialize(clock));
