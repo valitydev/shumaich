@@ -72,7 +72,7 @@ public abstract class IntegrationTestBase {
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
                     .of("kafka.bootstrap.servers=" + kafka.getEmbeddedKafka().getBrokersAsString(),
-                            "rocksdb.name=test" ,
+                            "rocksdb.name=test",
                             "rocksdb.dir=" + folder.newFolder())
                     .applyTo(configurableApplicationContext.getEnvironment());
         }

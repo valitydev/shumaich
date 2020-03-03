@@ -57,7 +57,6 @@ public class PostingPlanOperationToOperationLogListConverter {
                         : Math.negateExact(posting.getAmount()))
                 .currencySymbolicCode(posting.getCurrencySymbolicCode())
                 .description(posting.getDescription())
-                .creationTime(creationTime.toString())
                 .sequence(sequenceId)
                 .total(totalOperations)
                 .build();

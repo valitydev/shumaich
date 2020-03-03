@@ -23,7 +23,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @RequiredArgsConstructor
 public class ClockService {
 
-    private final static String DELIMITER = "_";
+    private final static String DELIMITER = "@";
 
     private final KafkaOffsetDao kafkaOffsetDao;
 
@@ -50,7 +50,7 @@ public class ClockService {
     }
 
     public void checkClockTimeline(Clock clock, boolean canBeLatestOrEmpty) {
-        if (clock.isSetLatest()) {
+        if (clock == null || clock.isSetLatest()) {
             if (canBeLatestOrEmpty) {
                 return;
             } else {

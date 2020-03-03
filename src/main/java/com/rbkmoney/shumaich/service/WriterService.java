@@ -7,13 +7,16 @@ import com.rbkmoney.shumaich.exception.KafkaException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.TopicPartition;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -31,11 +34,16 @@ public class WriterService {
             futures.add(kafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog));
         }
         try {
-            ArrayList<RecordMetadata> recordMetadataList = new ArrayList<>();
+            Map<TopicPartition, RecordMetadata> recordMetadataMap = new HashMap<>();
             for (ListenableFuture<SendResult<String, OperationLog>> future : futures) {
-                recordMetadataList.add(future.get().getRecordMetadata());
+                RecordMetadata recordMetadata = future.get().getRecordMetadata(); //todo completable future?
+                TopicPartition topicPartition = new TopicPartition(recordMetadata.topic(), recordMetadata.partition());
+                RecordMetadata mapRecordMetadata = recordMetadataMap.get(topicPartition);
+                if (mapRecordMetadata == null || mapRecordMetadata.offset() < recordMetadata.offset()) {
+                    recordMetadataMap.put(topicPartition, recordMetadata);
+                }
             }
-            return recordMetadataList;
+            return new ArrayList<>(recordMetadataMap.values());
         } catch (InterruptedException e) {
             log.error("Write operation interrupted, postingPlanOperation:{}", postingPlanOperation, e);
             Thread.currentThread().interrupt();

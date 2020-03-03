@@ -21,7 +21,7 @@ public class RequestTransformationService {
     private final ValidationService validationService;
 
     public Clock registerHold(PostingPlanChange postingPlanChange) {
-//        validationService.validatePostings(postingPlanChange)
+        validationService.validatePostings(postingPlanChange);
 //        validationService.validateNotDuplicate(postingPlanChange)
 
         List<RecordMetadata> partitionsMetadata = writerService.write(holdConverter.convert(postingPlanChange));

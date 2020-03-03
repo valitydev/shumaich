@@ -19,6 +19,10 @@ public class TestData {
 
     public static final String TEST_TOPIC = "test_topic";
     public static final String OPERATION_LOG_TOPIC = "operation_log";
+    public static final String PROVIDER_ACC = "1";
+    public static final String SYSTEM_ACC = "2";
+    public static final String MERCHANT_ACC = "3";
+    public static final String PLAN_ID = "plan";
 
     private static PostingBatchDamselToPostingBatchConverter converter = new PostingBatchDamselToPostingBatchConverter(
             new PostingDamselToPostingConverter()
@@ -30,8 +34,8 @@ public class TestData {
                 .operationType(OperationType.HOLD)
                 .postingBatches(
                         List.of(
-                                PostingGenerator.createBatch(1L, 2L, 3L),
-                                PostingGenerator.createBatch(1L, 2L, 3L)
+                                PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
+                                PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
                         ).stream().map(converter::convert).collect(Collectors.toList())
                 )
                 .build();
@@ -43,8 +47,8 @@ public class TestData {
                 .operationType(OperationType.HOLD)
                 .postingBatches(
                         List.of(
-                                PostingGenerator.createBatch(1L, 2L, 3L),
-                                PostingGenerator.createBatch(1L, 2L, 3L)
+                                PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
+                                PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
                         ).stream().map(converter::convert).collect(Collectors.toList())
                 )
                 .build();
@@ -72,11 +76,11 @@ public class TestData {
     }
 
     public static PostingPlanChange postingPlanChange() {
-        return PostingGenerator.createPostingPlanChange("plan", 1L, 2L, 3L);
+        return PostingGenerator.createPostingPlanChange(PLAN_ID, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
     }
 
     public static PostingPlan postingPlan() {
-        return PostingGenerator.createPostingPlan("plan", 1L, 2L, 3L);
+        return PostingGenerator.createPostingPlan(PLAN_ID, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
     }
 
     public static Posting postingDamsel() {
@@ -84,6 +88,6 @@ public class TestData {
     }
 
     public static PostingBatch postingBatchDamsel() {
-        return PostingGenerator.createBatch(1L, 2L, 3L);
+        return PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
     }
 }

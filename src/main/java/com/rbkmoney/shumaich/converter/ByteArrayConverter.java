@@ -11,6 +11,9 @@ public class ByteArrayConverter {
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static <T> T fromBytes(byte[] bytes, Class<T> clazz) {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
         try {
             return objectMapper.readValue(bytes, clazz);
         } catch (IOException e) {

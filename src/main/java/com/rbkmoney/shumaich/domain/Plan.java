@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.util.Map;
 
 @Data
 @Builder
@@ -13,6 +13,15 @@ import java.util.Set;
 @AllArgsConstructor
 public class Plan {
     private String planId;
-    private Set<Long> sequenceArrived;
-    private Long sequencesTotal;
+    private Map<Long, PlanBatch> batches;
+
+    public PlanBatch getBatch(Long key) {
+        return batches.get(key);
+    }
+
+    public PlanBatch addBatch(Long key, PlanBatch planBatch) {
+        batches.put(key, planBatch);
+        return planBatch;
+    }
+
 }
