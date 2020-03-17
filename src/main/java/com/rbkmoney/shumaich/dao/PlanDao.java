@@ -19,21 +19,18 @@ import java.util.Set;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PlanDao {
+public class PlanDao extends RocksDbDao {
 
     private final static String COLUMN_FAMILY_NAME = "plan";
-    private ColumnFamilyHandle columnFamilyHandle;
 
-    private final RocksDB rocksDB;
-
-    @PostConstruct
-    public void initializeColumnFamily() throws RocksDBException {
-        this.columnFamilyHandle = rocksDB.createColumnFamily(new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes()));
+    @Override
+    public ColumnFamilyDescriptor getColumnFamilyDescriptor() {
+        return new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes());
     }
 
     @PreDestroy
-    public void closeColumnFamily() {
-        this.columnFamilyHandle.close();
+    public void destroy() {
+        super.destroyColumnFamilyHandle();
     }
 
     public void planModificationReceived(Transaction transaction, OperationLog operationLog) {

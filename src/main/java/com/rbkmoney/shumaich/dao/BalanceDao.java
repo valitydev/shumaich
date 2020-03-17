@@ -16,22 +16,20 @@ import javax.annotation.PreDestroy;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class BalanceDao {
+public class BalanceDao extends RocksDbDao {
 
     private final static String COLUMN_FAMILY_NAME = "balance";
-    private ColumnFamilyHandle columnFamilyHandle;
 
-    private final TransactionDB rocksDB;
     private final PlanDao planDao;
 
-    @PostConstruct
-    public void initializeColumnFamily() throws RocksDBException {
-        this.columnFamilyHandle = rocksDB.createColumnFamily(new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes()));
+    @Override
+    public ColumnFamilyDescriptor getColumnFamilyDescriptor() {
+        return new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes());
     }
 
     @PreDestroy
-    public void closeColumnFamily() {
-        this.columnFamilyHandle.close();
+    public void destroy() {
+        super.destroyColumnFamilyHandle();
     }
 
     public void createNewBalance(Account account) {

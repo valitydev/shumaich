@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.shumaich.dao.AccountDao;
+
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OperationLogHandlerService implements Handler<OperationLog> {
 
-    private final AccountDao accountDao;
     private final BalanceDao balanceDao;
     private final KafkaOffsetDao kafkaOffsetDao;
 

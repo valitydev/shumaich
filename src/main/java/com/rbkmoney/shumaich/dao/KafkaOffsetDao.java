@@ -19,21 +19,18 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KafkaOffsetDao {
+public class KafkaOffsetDao extends RocksDbDao {
 
     private final static String COLUMN_FAMILY_NAME = "kafkaOffset";
-    private ColumnFamilyHandle columnFamilyHandle;
 
-    private final RocksDB rocksDB;
-
-    @PostConstruct
-    public void initializeColumnFamily() throws RocksDBException {
-        this.columnFamilyHandle = rocksDB.createColumnFamily(new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes()));
+    @Override
+    public ColumnFamilyDescriptor getColumnFamilyDescriptor() {
+        return new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes());
     }
 
     @PreDestroy
-    public void closeColumnFamily() {
-        this.columnFamilyHandle.close();
+    public void destroy() {
+        super.destroyColumnFamilyHandle();
     }
 
     public List<KafkaOffset> loadOffsets(Collection<TopicPartition> topicPartitions) {

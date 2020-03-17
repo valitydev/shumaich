@@ -20,7 +20,7 @@ spring:
 
 rocksdb:
   name: "test"
-  dir: "test"
+  dir: "src/test/resources/rocksdb-temp"
 
 kafka:
   bootstrap.servers: "localhost:29092"
