@@ -50,21 +50,22 @@ public class PlanDao extends RocksDbDao {
     }
 
     public boolean operationLogExists(OperationLog operationLog) {
+        Plan plan = getPlan(operationLog);
+        return plan != null
+                && plan.getBatch(operationLog.getBatchId()) != null
+                && plan.getBatch(operationLog.getBatchId()).containsSequenceValue(operationLog.getSequence());
+    }
+
+    private Plan getPlan(OperationLog operationLog) {
         try {
             byte[] planBytes = rocksDB.get(columnFamilyHandle, getKey(operationLog));
-            Plan plan = ByteArrayConverter.fromBytes(planBytes, Plan.class);
-            if (plan == null || plan.getBatch(operationLog.getBatchId()) == null) {
-                return false;
-            }
-            if (plan.getBatch(operationLog.getBatchId()).containsSequenceValue(operationLog.getSequence())) {
-                return true;
-            }
+            return ByteArrayConverter.fromBytes(planBytes, Plan.class);
         } catch (RocksDBException e) {
             //todo log
             log.error("Error in plan");
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
     private void createPlan(Transaction transaction, OperationLog operationLog) throws RocksDBException {

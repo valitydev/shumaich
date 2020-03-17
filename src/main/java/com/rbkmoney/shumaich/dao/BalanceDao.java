@@ -97,18 +97,27 @@ public class BalanceDao extends RocksDbDao {
         Long amount = operationLog.getAmountWithSign();
         switch (operationLog.getOperationType()) {
             case HOLD:
-                if (amount > 0) balance.setMaxAmount(balance.getMaxAmount() + amount);
-                else balance.setMinAmount(balance.getMinAmount() + amount);
+                if (amount > 0) {
+                    balance.setMaxAmount(balance.getMaxAmount() + amount);
+                } else {
+                    balance.setMinAmount(balance.getMinAmount() + amount);
+                }
                 break;
             case COMMIT:
                 balance.setAmount(balance.getAmount() + amount);
                 // добавление min/max amount захолдированной суммы (по протоколу)
-                if (amount > 0) balance.setMinAmount(balance.getMinAmount() + amount);
-                else balance.setMaxAmount(balance.getMaxAmount() + amount);
+                if (amount > 0) {
+                    balance.setMinAmount(balance.getMinAmount() + amount);
+                } else {
+                    balance.setMaxAmount(balance.getMaxAmount() + amount);
+                }
                 break;
             case ROLLBACK:
-                if (amount > 0) balance.setMaxAmount(balance.getMaxAmount() - amount);
-                else balance.setMinAmount(balance.getMinAmount() - amount);
+                if (amount > 0) {
+                    balance.setMaxAmount(balance.getMaxAmount() - amount);
+                } else {
+                    balance.setMinAmount(balance.getMinAmount() - amount);
+                }
                 break;
         }
         return balance;

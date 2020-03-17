@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -71,20 +72,23 @@ public class KafkaOffsetDao extends RocksDbDao {
     }
 
     public boolean isBeforeCurrentOffsets(List<KafkaOffset> clockKafkaOffsets) {
-        List<KafkaOffset> currentOffsets = this.loadOffsets(
-                clockKafkaOffsets.stream()
-                        .map(KafkaOffset::getTopicPartition)
-                        .collect(Collectors.toList())
-        );
+        List<TopicPartition> clockPartitions = clockKafkaOffsets.stream()
+                .map(KafkaOffset::getTopicPartition)
+                .collect(Collectors.toList());
+
+        List<KafkaOffset> currentOffsets = loadOffsets(clockPartitions);
 
         Map<Integer, Long> currentOffsetsLookupMap = currentOffsets.stream()
-                .collect(
-                        Collectors.toMap(ko -> ko.getTopicPartition().partition(), KafkaOffset::getOffset)
-                );
+                .collect(Collectors.toMap(ko -> ko.getTopicPartition().partition(), KafkaOffset::getOffset));
 
-        return clockKafkaOffsets.stream()
-                .allMatch(kafkaOffset ->
-                        currentOffsetsLookupMap.get(kafkaOffset.getTopicPartition().partition()) > kafkaOffset.getOffset());
+        return clockKafkaOffsets.stream().allMatch(isBefore(currentOffsetsLookupMap));
+    }
+
+    private Predicate<KafkaOffset> isBefore(Map<Integer, Long> currentOffsetsLookupMap) {
+        return clockKafkaOffset -> {
+            Long currentOffset = currentOffsetsLookupMap.get(clockKafkaOffset.getTopicPartition().partition());
+            return currentOffset > clockKafkaOffset.getOffset();
+        };
     }
 
     private Map<String, Long> convertToMap(List<KafkaOffset> kafkaOffsets) {
