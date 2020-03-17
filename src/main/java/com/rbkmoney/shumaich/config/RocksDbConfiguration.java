@@ -27,10 +27,10 @@ public class RocksDbConfiguration {
         ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<>();
         try {
             TransactionDBOptions transactionDbOptions = new TransactionDBOptions();
-            TransactionDB open = TransactionDB.open(options, transactionDbOptions, dbFile.getAbsolutePath(),
+            TransactionDB transactionDB = TransactionDB.open(options, transactionDbOptions, dbFile.getAbsolutePath(),
                     getColumnFamilyDescriptors(daoList), columnFamilyHandles);
             mapHandlesToDaos(columnFamilyHandles, daoList);
-            return open;
+            return transactionDB;
         } catch (RocksDBException ex) {
             log.error("Error initializing RocksDB, check configurations and permissions, exception: {}, message: {}, stackTrace: {}",
                     ex.getCause(), ex.getMessage(), ex.getStackTrace());
