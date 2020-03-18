@@ -18,31 +18,31 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
     @Override
     public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws InvalidPostingParams, TException {
-        clockService.checkClockTimeline(clock, true);
+        clockService.softCheckClockTimeline(clock);
         return service.registerHold(postingPlanChange);
     }
 
     @Override
     public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
-//        clockService.checkClockTimeline(clock, false);
+        clockService.hardCheckClockTimeline(clock);
         return null;
     }
 
     @Override
     public Clock rollbackPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
-        //        clockService.checkClockTimeline(clock, false);
+        clockService.hardCheckClockTimeline(clock);
         return null;
     }
 
     @Override
     public Balance getBalanceByID(String s, Clock clock) throws AccountNotFound, NotReady, TException {
-        //        clockService.checkClockTimeline(clock, false);
+        clockService.hardCheckClockTimeline(clock);
         return null;
     }
 
     @Override
     public Account getAccountByID(String s, Clock clock) throws AccountNotFound, NotReady, TException {
-        //        clockService.checkClockTimeline(clock, true);
+        clockService.softCheckClockTimeline(clock);
         return null;
     }
 }

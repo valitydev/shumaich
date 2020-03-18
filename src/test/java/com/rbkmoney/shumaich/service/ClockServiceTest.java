@@ -1,10 +1,12 @@
 package com.rbkmoney.shumaich.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.damsel.shumpune.Clock;
 import com.rbkmoney.damsel.shumpune.LatestClock;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.exception.NotReadyException;
+import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
@@ -94,6 +96,6 @@ public class ClockServiceTest {
 
     private Clock getClock(boolean empty) {
         return empty ? Clock.vector(VectorClockSerde.serialize(""))
-                : Clock.vector(VectorClockSerde.serialize("test_1_1_2_2"));
+                : Clock.vector(VectorClockSerde.serialize(TestUtils.createSerializedClock()));
     }
 }

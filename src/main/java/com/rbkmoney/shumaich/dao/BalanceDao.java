@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.dao;
 
-import com.rbkmoney.shumaich.converter.ByteArrayConverter;
+import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.domain.OperationLog;
@@ -10,7 +10,6 @@ import org.rocksdb.*;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Slf4j
@@ -35,7 +34,7 @@ public class BalanceDao extends RocksDbDao {
     public void createNewBalance(Account account) {
         try {
             rocksDB.put(columnFamilyHandle, account.getId().getBytes(),
-                    ByteArrayConverter.toBytes(Balance.builder()
+                    CommonConverter.toBytes(Balance.builder()
                             .accountId(account.getId())
                             .currencySymbolicCode(account.getCurrencySymbolicCode())
                             .amount(0L)
@@ -53,7 +52,7 @@ public class BalanceDao extends RocksDbDao {
     @Nullable
     public Balance getBalance(String accountId) {
         try {
-            return ByteArrayConverter.fromBytes(
+            return CommonConverter.fromBytes(
                     rocksDB.get(columnFamilyHandle, accountId.getBytes()),
                     Balance.class
             );
@@ -75,10 +74,10 @@ public class BalanceDao extends RocksDbDao {
             byte[] balanceBytes = transaction.getForUpdate(new ReadOptions(), columnFamilyHandle,
                     key, true);
             Balance balance = calculateBalance(
-                    ByteArrayConverter.fromBytes(balanceBytes, Balance.class),
+                    CommonConverter.fromBytes(balanceBytes, Balance.class),
                     operationLog
             );
-            transaction.put(columnFamilyHandle, key, ByteArrayConverter.toBytes(balance));
+            transaction.put(columnFamilyHandle, key, CommonConverter.toBytes(balance));
             planDao.planModificationReceived(transaction, operationLog);
             transaction.commit();
         } catch (RocksDBException e) {

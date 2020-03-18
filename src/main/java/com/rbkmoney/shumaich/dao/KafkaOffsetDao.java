@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.dao;
 
-import com.rbkmoney.shumaich.converter.ByteArrayConverter;
+import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +8,6 @@ import org.apache.kafka.common.TopicPartition;
 import org.rocksdb.*;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,7 +42,7 @@ public class KafkaOffsetDao extends RocksDbDao {
                 if (bytes == null || bytes.length == 0)
                     continue;
 
-                kafkaOffsets.add(new KafkaOffset(topicPartition, ByteArrayConverter.fromBytes(bytes, Long.class)));
+                kafkaOffsets.add(new KafkaOffset(topicPartition, CommonConverter.fromBytes(bytes, Long.class)));
             } catch (RocksDBException e) {
                 log.error("Reading kafkaOffsets exception:{}", topicPartitions, e);
                 throw new RuntimeException();
@@ -59,7 +58,7 @@ public class KafkaOffsetDao extends RocksDbDao {
         try {
             for (Map.Entry<String, Long> entry : convertToMap(kafkaOffsets).entrySet()) {
                 writeBatch.put(columnFamilyHandle, entry.getKey().getBytes(),
-                        ByteArrayConverter.toBytes(entry.getValue()));
+                        CommonConverter.toBytes(entry.getValue()));
             }
             rocksDB.write(writeOptions, writeBatch);
         } catch (RocksDBException e) {

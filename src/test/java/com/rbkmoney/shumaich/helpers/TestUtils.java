@@ -1,9 +1,12 @@
 package com.rbkmoney.shumaich.helpers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.damsel.shumpune.Clock;
+import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.service.ClockService;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
+import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -22,11 +25,21 @@ public class TestUtils {
         });
         return Clock.vector(
                 VectorClockSerde.serialize(
-                        kafkaOffsets.get(0).getTopicPartition().topic() + "@" + kafkaOffsets.stream()
-                                .map(kafkaOffset ->
-                                        String.format("%d@%d", kafkaOffset.getTopicPartition().partition(),
-                                                kafkaOffset.getOffset()))
-                                .collect(Collectors.joining("@"))
+                        CommonConverter.serialize(
+                                new com.rbkmoney.shumaich.domain.Clock(kafkaOffsets.get(0).getTopicPartition().topic(),
+                                kafkaOffsets
+                                        .stream()
+                                        .map(com.rbkmoney.shumaich.domain.Clock.PartitionOffsetPair::new)
+                                        .collect(Collectors.toList())))
+                )
+        );
+    }
+
+    public static String createSerializedClock() {
+        return CommonConverter.serialize(
+                new com.rbkmoney.shumaich.domain.Clock("test",
+                        List.of(new com.rbkmoney.shumaich.domain.Clock.PartitionOffsetPair(1, 1L),
+                                new com.rbkmoney.shumaich.domain.Clock.PartitionOffsetPair(2, 2L))
                 )
         );
     }

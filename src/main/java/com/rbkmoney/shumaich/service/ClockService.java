@@ -1,7 +1,10 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Clock;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
+import com.rbkmoney.shumaich.domain.Clock;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
@@ -11,6 +14,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -23,49 +27,58 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @RequiredArgsConstructor
 public class ClockService {
 
-    private final static String DELIMITER = "@";
-
     private final KafkaOffsetDao kafkaOffsetDao;
 
     public String formClock(List<RecordMetadata> recordMetadataList) {
-        return recordMetadataList.get(0).topic() + DELIMITER + recordMetadataList.stream()
-                .map(recordMetadata -> String.format("%d%s%d", recordMetadata.partition(), DELIMITER, recordMetadata.offset()))
-                .collect(Collectors.joining(DELIMITER));
+        Clock clock = new Clock(
+                recordMetadataList.get(0).topic(),
+                recordMetadataList.stream()
+                        .map(Clock.PartitionOffsetPair::new)
+                        .collect(Collectors.toList())
+        );
+        return CommonConverter.serialize(clock);
     }
 
     public List<KafkaOffset> parseClock(String clock) {
         if (isBlank(clock)) {
             return Collections.emptyList();
         }
-        String[] strings = clock.split(DELIMITER);
-        String topicName = strings[0];
-        ArrayList<KafkaOffset> kafkaOffsets = new ArrayList<>();
-        for (int i = 1; i < strings.length; i += 2) {
-            kafkaOffsets.add(new KafkaOffset(
-                    new TopicPartition(topicName, Integer.parseInt(strings[i])),
-                    Long.parseLong(strings[i + 1])
-            ));
-        }
-        return kafkaOffsets;
+        Clock deserializedClock = CommonConverter.deserialize(clock, Clock.class);
+
+        return deserializedClock.getPartitionOffsetPairList()
+                .stream()
+                .map(partitionOffsetPair -> new KafkaOffset(
+                        new TopicPartition(deserializedClock.getTopicName(), partitionOffsetPair.getPartition()),
+                        partitionOffsetPair.getOffset()))
+                .collect(Collectors.toList());
     }
 
-    public void checkClockTimeline(Clock clock, boolean canBeLatestOrEmpty) {
+    public void hardCheckClockTimeline(com.rbkmoney.damsel.shumpune.Clock clock) {
         if (clock == null || clock.isSetLatest()) {
-            if (canBeLatestOrEmpty) {
-                return;
-            } else {
-                throw new IllegalArgumentException("Clock can't be latest");
-            }
+            throw new IllegalArgumentException("Clock can't be latest");
         }
 
         List<KafkaOffset> kafkaOffsets = parseClock(VectorClockSerde.deserialize(clock.getVector()));
 
         if (kafkaOffsets.isEmpty()) {
-            if (canBeLatestOrEmpty) {
+            throw new IllegalArgumentException("Clock can't be empty");
+        }
+
+        if (!kafkaOffsetDao.isBeforeCurrentOffsets(kafkaOffsets)) {
+            throw new NotReadyException();
+        }
+
+    }
+
+    public void softCheckClockTimeline(com.rbkmoney.damsel.shumpune.Clock clock) {
+        if (clock == null || clock.isSetLatest()) {
                 return;
-            } else {
-                throw new IllegalArgumentException("Clock can't be empty");
-            }
+        }
+
+        List<KafkaOffset> kafkaOffsets = parseClock(VectorClockSerde.deserialize(clock.getVector()));
+
+        if (kafkaOffsets.isEmpty()) {
+                return;
         }
 
         if (!kafkaOffsetDao.isBeforeCurrentOffsets(kafkaOffsets)) {
