@@ -1,8 +1,6 @@
 package com.rbkmoney.shumaich.dao;
 
-import org.rocksdb.ColumnFamilyDescriptor;
 import org.rocksdb.ColumnFamilyHandle;
-import org.rocksdb.RocksDB;
 import org.rocksdb.TransactionDB;
 
 public abstract class RocksDbDao {
@@ -11,10 +9,11 @@ public abstract class RocksDbDao {
 
     protected TransactionDB rocksDB;
 
-    public abstract ColumnFamilyDescriptor getColumnFamilyDescriptor();
+    public abstract byte[] getColumnFamilyName();
 
-    public void initColumnFamilyHandle(ColumnFamilyHandle columnFamilyHandle) {
+    public void initDao(ColumnFamilyHandle columnFamilyHandle, TransactionDB rocksDB) {
         this.columnFamilyHandle = columnFamilyHandle;
+        this.rocksDB = rocksDB;
     }
 
     public void destroyColumnFamilyHandle() {

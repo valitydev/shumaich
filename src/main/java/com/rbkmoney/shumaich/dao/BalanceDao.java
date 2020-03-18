@@ -22,8 +22,8 @@ public class BalanceDao extends RocksDbDao {
     private final PlanDao planDao;
 
     @Override
-    public ColumnFamilyDescriptor getColumnFamilyDescriptor() {
-        return new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes());
+    public byte[] getColumnFamilyName() {
+        return COLUMN_FAMILY_NAME.getBytes();
     }
 
     @PreDestroy

@@ -46,26 +46,26 @@ public class ClockServiceTest {
     @Test
     public void checkClockTimeline_success() {
         when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(true);
-        service.checkClockTimeline(getClock(false), false);
-        service.checkClockTimeline(getClock(false), true);
-        service.checkClockTimeline(getClock(true), true);
-        service.checkClockTimeline(getLatestClock(), true);
+        service.hardCheckClockTimeline(getClock((false)));
+        service.softCheckClockTimeline(getClock((false)));
+        service.softCheckClockTimeline(getClock((true)));
+        service.softCheckClockTimeline(getLatestClock());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void checkClockTimeline_latest() {
-        service.checkClockTimeline(getLatestClock(), false);
+        service.hardCheckClockTimeline(getLatestClock());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void checkClockTimeline_empty() {
-        service.checkClockTimeline(getClock(true), false);
+        service.hardCheckClockTimeline(getClock((true)));;
     }
 
     @Test(expected = NotReadyException.class)
     public void checkClockTimeline_notReady() {
         when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(false);
-        service.checkClockTimeline(getClock(false), false);
+        service.hardCheckClockTimeline(getClock((false)));
     }
 
     private RecordMetadata getRecordMetadata(Integer partition, Integer offset) {

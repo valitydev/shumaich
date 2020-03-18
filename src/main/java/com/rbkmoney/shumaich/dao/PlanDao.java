@@ -23,8 +23,8 @@ public class PlanDao extends RocksDbDao {
     private final static String COLUMN_FAMILY_NAME = "plan";
 
     @Override
-    public ColumnFamilyDescriptor getColumnFamilyDescriptor() {
-        return new ColumnFamilyDescriptor(COLUMN_FAMILY_NAME.getBytes());
+    public byte[] getColumnFamilyName() {
+        return COLUMN_FAMILY_NAME.getBytes();
     }
 
     @PreDestroy
