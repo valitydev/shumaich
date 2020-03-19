@@ -2,12 +2,12 @@ package com.rbkmoney.shumaich;
 
 
 import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -31,7 +31,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -58,7 +57,7 @@ public abstract class IntegrationTestBase {
     private PostingPlanOperationToOperationLogListConverter converter;
 
     @SpyBean
-    protected KafkaOffsetDao kafkaOffsetDao;
+    protected KafkaOffsetService kafkaOffsetService;
 
     public static final EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
             OPERATION_LOG_TOPIC, OPERATION_LOG_TOPIC);
@@ -93,7 +92,7 @@ public abstract class IntegrationTestBase {
     protected void setInitialOffsets(int partitionNumber, Long initialOffsets, String topicName) throws InterruptedException, ExecutionException {
         List<TopicPartitionInfo> partitions = getTopicPartitions(topicName);
 
-        kafkaOffsetDao.saveOffsets(partitions.stream()
+        kafkaOffsetService.saveOffsets(partitions.stream()
                 .filter(partition -> partition.partition() == partitionNumber)
                 .map(topicPartitionInfo -> TestData.kafkaOffset(
                         topicName,
@@ -106,7 +105,7 @@ public abstract class IntegrationTestBase {
     protected void checkOffsets(int partitionNumber, Long expectedOffset, String topicName) throws ExecutionException, InterruptedException {
         List<TopicPartitionInfo> partitions = getTopicPartitions(topicName);
 
-        List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(partitions.stream()
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(partitions.stream()
                 .filter(partition -> partition.partition() == partitionNumber)
                 .map(topicPartitionInfo -> new TopicPartition(topicName, topicPartitionInfo.partition()))
                 .collect(Collectors.toList())

@@ -1,15 +1,20 @@
 package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
+import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import com.rbkmoney.shumaich.service.OperationLogHandlerService;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.TopicPartitionInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.rocksdb.RocksDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +23,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
@@ -43,6 +48,23 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
+
+    @Autowired
+    RocksDB rocksDB;
+
+    @Autowired
+    KafkaOffsetDao kafkaOffsetDao;
+
+    @Autowired
+    KafkaOffsetService kafkaOffsetService;
+
+    @Before
+    public void cleanDbData() throws ExecutionException, InterruptedException {
+        List<TopicPartitionInfo> partitions = getTopicPartitions(OPERATION_LOG_TOPIC);
+        partitions.stream()
+                .map(topicPartitionInfo -> new TopicPartition(OPERATION_LOG_TOPIC, topicPartitionInfo.partition()))
+                .forEach(this::cleanDbValue);
+    }
 
     @Test
     public void testCreationAndInteraction() throws InterruptedException, ExecutionException {
@@ -109,7 +131,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         Mockito.doThrow(RuntimeException.class)
                 .doCallRealMethod()
-                .when(kafkaOffsetDao)
+                .when(kafkaOffsetService)
                 .saveOffsets(any());
 
         sendOperationLogToPartition(testPartition);
@@ -118,6 +140,11 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         Mockito.verify(operationLogHandler, Mockito.atLeast(2)).handle(any());
         checkOffsets(testPartition, 1L, OPERATION_LOG_TOPIC);
+    }
+
+    @SneakyThrows
+    private void cleanDbValue(TopicPartition topicPartition) {
+        rocksDB.delete(kafkaOffsetDao.getColumnFamilyHandle(), topicPartition.toString().getBytes());
     }
 
     @Configuration

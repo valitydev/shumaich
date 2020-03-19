@@ -1,6 +1,5 @@
 package com.rbkmoney.shumaich.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.damsel.shumpune.Clock;
 import com.rbkmoney.damsel.shumpune.LatestClock;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
@@ -22,8 +21,8 @@ import static org.mockito.Mockito.when;
 
 public class ClockServiceTest {
 
-    KafkaOffsetDao kafkaOffsetDao = mock(KafkaOffsetDao.class);
-    ClockService service = new ClockService(kafkaOffsetDao);
+    KafkaOffsetService kafkaOffsetService = mock(KafkaOffsetService.class);
+    ClockService service = new ClockService(kafkaOffsetService);
 
     @Test
     public void successPath() {
@@ -45,7 +44,7 @@ public class ClockServiceTest {
 
     @Test
     public void checkClockTimeline_success() {
-        when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(true);
+        when(kafkaOffsetService.isBeforeCurrentOffsets(any())).thenReturn(true);
         service.hardCheckClockTimeline(getFilledClock());
         service.softCheckClockTimeline(getFilledClock());
         service.softCheckClockTimeline(getEmptyClock());
@@ -64,7 +63,7 @@ public class ClockServiceTest {
 
     @Test(expected = NotReadyException.class)
     public void checkClockTimeline_notReady() {
-        when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(false);
+        when(kafkaOffsetService.isBeforeCurrentOffsets(any())).thenReturn(false);
         service.hardCheckClockTimeline(getFilledClock());
     }
 

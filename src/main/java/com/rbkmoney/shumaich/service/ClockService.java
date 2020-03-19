@@ -1,9 +1,6 @@
 package com.rbkmoney.shumaich.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.shumaich.converter.CommonConverter;
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.Clock;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.exception.NotReadyException;
@@ -14,8 +11,6 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,7 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @RequiredArgsConstructor
 public class ClockService {
 
-    private final KafkaOffsetDao kafkaOffsetDao;
+    private final KafkaOffsetService kafkaOffsetService;
 
     public String formClock(List<RecordMetadata> recordMetadataList) {
         Clock clock = new Clock(
@@ -64,7 +59,7 @@ public class ClockService {
             throw new IllegalArgumentException("Clock can't be empty");
         }
 
-        if (!kafkaOffsetDao.isBeforeCurrentOffsets(kafkaOffsets)) {
+        if (!kafkaOffsetService.isBeforeCurrentOffsets(kafkaOffsets)) {
             throw new NotReadyException();
         }
 
@@ -81,7 +76,7 @@ public class ClockService {
                 return;
         }
 
-        if (!kafkaOffsetDao.isBeforeCurrentOffsets(kafkaOffsets)) {
+        if (!kafkaOffsetService.isBeforeCurrentOffsets(kafkaOffsets)) {
             throw new NotReadyException();
         }
 

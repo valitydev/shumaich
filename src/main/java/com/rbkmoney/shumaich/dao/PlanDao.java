@@ -53,8 +53,4 @@ public class PlanDao extends RocksDbDao {
             throw new DaoException("Can't save plan with id: " + planId, e);
         }
     }
-
-    public ColumnFamilyHandle getColumnFamilyHandle() {
-        return columnFamilyHandle;
-    }
 }

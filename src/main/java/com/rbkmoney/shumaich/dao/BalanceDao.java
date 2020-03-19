@@ -23,10 +23,6 @@ public class BalanceDao extends RocksDbDao {
         return COLUMN_FAMILY_NAME.getBytes();
     }
 
-    public ColumnFamilyHandle getColumnFamilyHandle() {
-        return columnFamilyHandle;
-    }
-
     public void put(Balance balance) {
         try {
             rocksDB.put(columnFamilyHandle, balance.getAccountId().getBytes(), CommonConverter.toBytes(balance));

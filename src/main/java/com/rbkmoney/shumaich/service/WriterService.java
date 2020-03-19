@@ -50,7 +50,7 @@ public class WriterService {
             throw new KafkaException();
         } catch (ExecutionException e) {
             log.error("Write operation - answer from broker timeout, postingPlanOperation:{}", postingPlanOperation, e);
-            throw new KafkaException();
+            throw new KafkaException(e);
         }
     }
 

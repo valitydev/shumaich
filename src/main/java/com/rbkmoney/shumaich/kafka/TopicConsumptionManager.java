@@ -2,6 +2,7 @@ package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.common.TopicPartition;
@@ -27,7 +28,7 @@ public class TopicConsumptionManager<K, V> {
     public TopicConsumptionManager(TopicDescription topicDescription,
                                    Integer partitionsPerThread,
                                    Map<String, Object> consumerProps,
-                                   KafkaOffsetDao kafkaOffsetDao,
+                                   KafkaOffsetService kafkaOffsetService,
                                    Handler<V> handler,
                                    Long pollingTimeout) {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
@@ -39,7 +40,7 @@ public class TopicConsumptionManager<K, V> {
                     new SimpleTopicConsumer<>(
                             consumerProps,
                             calculateAssignedPartitions(partitionsPerThread, topicDescription, i),
-                            kafkaOffsetDao,
+                            kafkaOffsetService,
                             handler,
                             pollingTimeout
                     )

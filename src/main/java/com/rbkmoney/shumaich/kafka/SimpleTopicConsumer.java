@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.kafka;
 
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -26,7 +26,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
     private final Map<String, Object> consumerProps;
     private final List<TopicPartition> assignedPartitions;
-    private final KafkaOffsetDao kafkaOffsetDao;
+    private final KafkaOffsetService kafkaOffsetService;
     private final Handler<V> handler;
     private final Long pollingTimeout;
 
@@ -34,7 +34,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
         return new SimpleTopicConsumer<>(
                 otherConsumer.consumerProps,
                 otherConsumer.assignedPartitions,
-                otherConsumer.kafkaOffsetDao,
+                otherConsumer.kafkaOffsetService,
                 otherConsumer.handler,
                 otherConsumer.pollingTimeout
         );
@@ -73,7 +73,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     private void initConsumer() {
         consumer = new KafkaConsumer<>(consumerProps);
         consumer.assign(assignedPartitions);
-        List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(assignedPartitions);
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
         kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
     }
 
@@ -89,7 +89,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
                 .map(topicPartition -> getLatestKafkaOffset(records, topicPartition))
                 .collect(Collectors.toList());
 
-        kafkaOffsetDao.saveOffsets(offsets);
+        kafkaOffsetService.saveOffsets(offsets);
 
         offsets.forEach(offset -> consumer.seek(offset.getTopicPartition(), offset.getOffset()));
     }
