@@ -61,7 +61,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         handler.hold(TestData.postingPlanChange(), null);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         Balance balance = balanceDao.get(MERCHANT_ACC);
 
@@ -86,7 +86,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(plan2, null);
         handler.hold(plan2, null);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         Balance balance = balanceDao.get(MERCHANT_ACC);
 
@@ -106,7 +106,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         plan1.getBatch().setId(2L);
         handler.hold(plan1, clock);
 
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         Balance balance = balanceDao.get(MERCHANT_ACC);
 
