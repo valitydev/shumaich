@@ -80,7 +80,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     public void shutdown() {
         log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
         alive.set(false);
-        consumer.wakeup();
+        consumer.wakeup(); //todo research why NPE?
     }
 
     private void saveOffsetsAndSeek(ConsumerRecords<K, V> records) {

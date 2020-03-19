@@ -2,6 +2,7 @@ package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
+import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
@@ -26,6 +27,7 @@ import org.springframework.test.context.ContextConfiguration;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.rbkmoney.shumaich.helpers.TestData.OPERATION_LOG_TOPIC;
@@ -60,8 +62,9 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Before
     public void cleanDbData() throws ExecutionException, InterruptedException {
-        List<TopicPartitionInfo> partitions = getTopicPartitions(OPERATION_LOG_TOPIC);
-        partitions.stream()
+        operationLogTopicConsumptionManager.shutdownConsumers();
+        Thread.sleep(500);
+        getTopicPartitions(OPERATION_LOG_TOPIC).stream()
                 .map(topicPartitionInfo -> new TopicPartition(OPERATION_LOG_TOPIC, topicPartitionInfo.partition()))
                 .forEach(this::cleanDbValue);
     }
@@ -127,7 +130,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void handledMessageWithExceptionWhenSavingToRedis() throws ExecutionException, InterruptedException {
-        int testPartition = 3;
+        int testPartition = 5; //todo research why this fixes fallen tests
 
         Mockito.doThrow(RuntimeException.class)
                 .doCallRealMethod()
