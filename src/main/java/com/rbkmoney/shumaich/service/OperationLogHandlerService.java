@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OperationLogHandlerService implements Handler<OperationLog> {
 
-    private final BalanceDao balanceDao;
-    private final KafkaOffsetDao kafkaOffsetDao;
+    private final BalanceService balanceService;
 
     @Override
     public void handle(ConsumerRecords<?, OperationLog> records) {
@@ -39,10 +38,10 @@ public class OperationLogHandlerService implements Handler<OperationLog> {
     }
 
     private void processHold(OperationLog operationLog) {
-        if (balanceDao.getBalance(operationLog.getAccount().getId()) == null) {
-            balanceDao.createNewBalance(operationLog.getAccount());
+        if (!balanceService.balanceExists(operationLog.getAccount().getId())) {
+            balanceService.createNewBalance(operationLog.getAccount());
         }
-            balanceDao.proceedHold(operationLog);
+        balanceService.proceedHold(operationLog);
     }
 
     private void processFinalOperation(OperationLog operationLog) {

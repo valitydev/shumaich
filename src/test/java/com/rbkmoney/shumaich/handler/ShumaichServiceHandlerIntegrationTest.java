@@ -14,11 +14,9 @@ import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.*;
-import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +63,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         Thread.sleep(1000);
 
-        Balance balance = balanceDao.getBalance(MERCHANT_ACC);
+        Balance balance = balanceDao.get(MERCHANT_ACC);
 
         Assert.assertNotNull(balance);
         Assert.assertEquals(0, balance.getAmount().intValue());
@@ -90,7 +88,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         Thread.sleep(1000);
 
-        Balance balance = balanceDao.getBalance(MERCHANT_ACC);
+        Balance balance = balanceDao.get(MERCHANT_ACC);
 
         Assert.assertNotNull(balance);
         Assert.assertEquals(0, balance.getAmount().intValue());
@@ -110,7 +108,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         Thread.sleep(1000);
 
-        Balance balance = balanceDao.getBalance(MERCHANT_ACC);
+        Balance balance = balanceDao.get(MERCHANT_ACC);
 
         Assert.assertNotNull(balance);
         Assert.assertEquals(0, balance.getAmount().intValue());

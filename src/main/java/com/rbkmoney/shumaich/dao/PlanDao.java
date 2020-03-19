@@ -2,100 +2,56 @@ package com.rbkmoney.shumaich.dao;
 
 
 import com.rbkmoney.shumaich.converter.CommonConverter;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.Plan;
-import com.rbkmoney.shumaich.domain.PlanBatch;
+import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rocksdb.*;
+import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.ReadOptions;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.Transaction;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class PlanDao extends RocksDbDao {
 
-    private final static String COLUMN_FAMILY_NAME = "plan";
+    private static final String COLUMN_FAMILY_NAME = "plan";
 
     @Override
     public byte[] getColumnFamilyName() {
         return COLUMN_FAMILY_NAME.getBytes();
     }
 
-//    @PreDestroy
-//    public void destroy() {
-//        super.destroyColumnFamilyHandle();
-//    }
-
-    public void planModificationReceived(Transaction transaction, OperationLog operationLog) {
+    public Plan get(String planId) {
         try {
-            byte[] planBytes = transaction.getForUpdate(new ReadOptions(), columnFamilyHandle,
-                    getKey(operationLog), true);
-            if (planBytes == null) {
-                createPlan(transaction, operationLog);
-            } else {
-                addToPlan(transaction, operationLog);
-            }
+            return CommonConverter.fromBytes(rocksDB.get(columnFamilyHandle, planId.getBytes()), Plan.class);
         } catch (RocksDBException e) {
-            //todo log
-            log.error("Error in transaction");
-            e.printStackTrace();
+            log.error("Can't get plan with id: {}", planId, e);
+            throw new DaoException("Can't get plan with id: " + planId, e);
         }
     }
 
-    public boolean operationLogExists(OperationLog operationLog) {
-        Plan plan = getPlan(operationLog);
-        return plan != null
-                && plan.getBatch(operationLog.getBatchId()) != null
-                && plan.getBatch(operationLog.getBatchId()).containsSequenceValue(operationLog.getSequence());
+    public Plan getForUpdate(Transaction transaction, String planId) {
+        try (ReadOptions readOptions = new ReadOptions()) {
+            return CommonConverter.fromBytes(
+                    transaction.getForUpdate(readOptions, columnFamilyHandle, planId.getBytes(), true),
+                    Plan.class
+            );
+        } catch (RocksDBException e) {
+            log.error("Can't get plan for update with id: {}", planId, e);
+            throw new DaoException("Can't get plan for update with id: " + planId, e);
+        }
     }
 
-    private Plan getPlan(OperationLog operationLog) {
+    public void putInTransaction(Transaction transaction, String planId, Plan plan) {
         try {
-            byte[] planBytes = rocksDB.get(columnFamilyHandle, getKey(operationLog));
-            return CommonConverter.fromBytes(planBytes, Plan.class);
+            transaction.put(columnFamilyHandle, planId.getBytes(), CommonConverter.toBytes(plan));
         } catch (RocksDBException e) {
-            //todo log
-            log.error("Error in plan");
-            e.printStackTrace();
+            log.error("Can't save plan with id: {}", planId, e);
+            throw new DaoException("Can't save plan with id: " + planId, e);
         }
-        return null;
-    }
-
-    private void createPlan(Transaction transaction, OperationLog operationLog) throws RocksDBException {
-        Set<Long> sequenceArrived = new HashSet<>();
-        sequenceArrived.add(operationLog.getSequence());
-        transaction.put(columnFamilyHandle, getKey(operationLog), CommonConverter.toBytes(
-                Plan.builder()
-                        .planId(operationLog.getPlanId())
-                        .batches(Map.of(operationLog.getBatchId(), new PlanBatch(sequenceArrived, operationLog.getTotal())))
-                        .build()
-        ));
-    }
-
-    private void addToPlan(Transaction transaction, OperationLog operationLog) throws RocksDBException {
-        byte[] planBytes = transaction.getForUpdate(new ReadOptions(), columnFamilyHandle, getKey(operationLog), true);
-        Plan plan = CommonConverter.fromBytes(planBytes, Plan.class);
-        PlanBatch batch = plan.getBatch(operationLog.getBatchId());
-        if (batch == null) {
-            batch = plan.addBatch(operationLog.getBatchId(),
-                    new PlanBatch(new HashSet<>(), operationLog.getTotal()));
-        }
-        batch.addSequence(operationLog.getSequence());
-        transaction.put(columnFamilyHandle, getKey(operationLog), CommonConverter.toBytes(plan));
-    }
-
-    private byte[] getKey(OperationLog operationLog) {
-        return getKey(operationLog.getPlanId(), operationLog.getOperationType().toString());
-    }
-
-    private byte[] getKey(String planId, String operationType) {
-        return String.format("%s_%s", planId, operationType).getBytes();
     }
 
     public ColumnFamilyHandle getColumnFamilyHandle() {

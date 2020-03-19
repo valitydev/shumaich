@@ -12,14 +12,14 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PlanBatch {
-    private Set<Long> sequenceArrived;
+    private Set<Long> sequencesArrived;
     private Long sequencesTotal;
 
     public boolean containsSequenceValue(Long num) {
-        return sequenceArrived.contains(num);
+        return sequencesArrived.contains(num);
     }
 
     public void addSequence(Long seq) {
-        sequenceArrived.add(seq);
+        sequencesArrived.add(seq);
     }
 }
