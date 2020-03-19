@@ -46,9 +46,9 @@ public class ClockServiceTest {
     @Test
     public void checkClockTimeline_success() {
         when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(true);
-        service.hardCheckClockTimeline(getClock((false)));
-        service.softCheckClockTimeline(getClock((false)));
-        service.softCheckClockTimeline(getClock((true)));
+        service.hardCheckClockTimeline(getFilledClock());
+        service.softCheckClockTimeline(getFilledClock());
+        service.softCheckClockTimeline(getEmptyClock());
         service.softCheckClockTimeline(getLatestClock());
     }
 
@@ -59,13 +59,13 @@ public class ClockServiceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void checkClockTimeline_empty() {
-        service.hardCheckClockTimeline(getClock((true)));;
+        service.hardCheckClockTimeline(getEmptyClock());;
     }
 
     @Test(expected = NotReadyException.class)
     public void checkClockTimeline_notReady() {
         when(kafkaOffsetDao.isBeforeCurrentOffsets(any())).thenReturn(false);
-        service.hardCheckClockTimeline(getClock((false)));
+        service.hardCheckClockTimeline(getFilledClock());
     }
 
     private RecordMetadata getRecordMetadata(Integer partition, Integer offset) {
@@ -94,8 +94,11 @@ public class ClockServiceTest {
         return Clock.latest(new LatestClock());
     }
 
-    private Clock getClock(boolean empty) {
-        return empty ? Clock.vector(VectorClockSerde.serialize(""))
-                : Clock.vector(VectorClockSerde.serialize(TestUtils.createSerializedClock()));
+    private Clock getFilledClock() {
+        return Clock.vector(VectorClockSerde.serialize(TestUtils.createSerializedClock()));
+    }
+    
+    private Clock getEmptyClock() {
+        return Clock.vector(VectorClockSerde.serialize(""));
     }
 }

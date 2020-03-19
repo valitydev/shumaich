@@ -10,8 +10,6 @@ import org.rocksdb.*;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,10 +24,10 @@ public class BalanceDao extends RocksDbDao {
         return COLUMN_FAMILY_NAME.getBytes();
     }
 
-    @PreDestroy
-    public void destroy() {
-        super.destroyColumnFamilyHandle();
-    }
+//    @PreDestroy
+//    public void destroy() {
+//        super.destroyColumnFamilyHandle();
+//    }
 
     public void createNewBalance(Account account) {
         try {
@@ -80,6 +78,8 @@ public class BalanceDao extends RocksDbDao {
             transaction.put(columnFamilyHandle, key, CommonConverter.toBytes(balance));
             planDao.planModificationReceived(transaction, operationLog);
             transaction.commit();
+            transaction.close();
+            writeOptions.close();
         } catch (RocksDBException e) {
             //todo
             log.error("Error in proceedHold");
@@ -89,6 +89,8 @@ public class BalanceDao extends RocksDbDao {
             } catch (RocksDBException ex) {
                 log.error("Can't rollback transaction, lol");
             }
+        } finally {
+            transaction.close();
         }
     }
 
@@ -120,6 +122,10 @@ public class BalanceDao extends RocksDbDao {
                 break;
         }
         return balance;
+    }
+
+    public ColumnFamilyHandle getColumnFamilyHandle() {
+        return columnFamilyHandle;
     }
 
 }

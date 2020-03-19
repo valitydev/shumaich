@@ -70,17 +70,17 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
         }
     }
 
-    public void shutdown() {
-        log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
-        alive.set(false);
-        consumer.wakeup();
-    }
-
     private void initConsumer() {
         consumer = new KafkaConsumer<>(consumerProps);
         consumer.assign(assignedPartitions);
         List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(assignedPartitions);
         kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
+    }
+
+    public void shutdown() {
+        log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
+        alive.set(false);
+        consumer.wakeup();
     }
 
     private void saveOffsetsAndSeek(ConsumerRecords<K, V> records) {

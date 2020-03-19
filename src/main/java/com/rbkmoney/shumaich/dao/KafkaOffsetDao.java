@@ -28,10 +28,10 @@ public class KafkaOffsetDao extends RocksDbDao {
         return COLUMN_FAMILY_NAME.getBytes();
     }
 
-    @PreDestroy
-    public void destroy() {
-        super.destroyColumnFamilyHandle();
-    }
+//    @PreDestroy
+//    public void destroy() {
+//        super.destroyColumnFamilyHandle();
+//    }
 
     public List<KafkaOffset> loadOffsets(Collection<TopicPartition> topicPartitions) {
         List<KafkaOffset> kafkaOffsets = new ArrayList<>();

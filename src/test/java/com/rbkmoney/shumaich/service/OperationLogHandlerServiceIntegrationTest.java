@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @ContextConfiguration(classes = {OperationLogHandlerServiceIntegrationTest.Config.class})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBase {
 
     @SpyBean
@@ -33,24 +35,13 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
 
-    @Before
-    public void clear() throws InterruptedException {
-        operationLogTopicConsumptionManager.shutdownConsumers();
-    }
-
-    @After
-    public void cleanup() throws IOException {
-        folder.delete();
-        folder.create();
-    }
-
     @Test
     public void successEventPropagation() throws InterruptedException, ExecutionException {
         String testPlanId = "plan1";
         PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
         sendPlanToPartition(plan);
 
-        Thread.sleep(6000);
+        Thread.sleep(3000);
 
         int totalPostings = plan.getPostingBatches().stream()
                 .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
@@ -59,26 +50,26 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
                 handler.countReceivedRecords(testPlanId).intValue());
     }
 
-
-    @Test
-    @Ignore // cейчас flush() нет, возможно верну и тест верну
-    public void kafkaTemplateFlushErrorRetried() throws InterruptedException {
-        Mockito.doThrow(RuntimeException.class)
-                .doCallRealMethod()
-                .when(operationLogKafkaTemplate).flush();
-
-        String testPlanId = "plan3";
-        PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
-        sendPlanToPartition(plan);
-
-        Thread.sleep(6000);
-
-        int totalPostings = plan.getPostingBatches().stream()
-                .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
-
-        Assert.assertEquals(totalPostings * 2,
-                handler.countReceivedRecords(testPlanId).intValue());
-    }
+//
+//    @Test
+//    @Ignore // cейчас flush() нет, возможно верну и тест верну
+//    public void kafkaTemplateFlushErrorRetried() throws InterruptedException {
+//        Mockito.doThrow(RuntimeException.class)
+//                .doCallRealMethod()
+//                .when(operationLogKafkaTemplate).flush();
+//
+//        String testPlanId = "plan3";
+//        PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
+//        sendPlanToPartition(plan);
+//
+//        Thread.sleep(6000);
+//
+//        int totalPostings = plan.getPostingBatches().stream()
+//                .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
+//
+//        Assert.assertEquals(totalPostings * 2,
+//                handler.countReceivedRecords(testPlanId).intValue());
+//    }
 
     @Configuration
     public static class Config {

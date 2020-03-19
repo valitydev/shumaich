@@ -14,21 +14,23 @@ import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.IOException;
 import java.util.Map;
 
-import static com.rbkmoney.shumaich.helpers.TestData.MERCHANT_ACC;
+import static com.rbkmoney.shumaich.helpers.TestData.*;
 
 @Slf4j
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
@@ -41,25 +43,27 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     PlanDao planDao;
 
     @Autowired
-    RocksDB rocksDB;
+    TransactionDB rocksDB;
 
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
 
     @Before
-    public void clear() throws InterruptedException {
-        operationLogTopicConsumptionManager.shutdownConsumers();
-    }
-
-    @After
-    public void cleanup() throws IOException {
-        folder.delete();
-        folder.create();
+    public void clearDbData() throws RocksDBException {
+        rocksDB.delete(planDao.getColumnFamilyHandle(), (PLAN_ID + "_HOLD").getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan1_HOLD".getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan2_HOLD".getBytes());
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), MERCHANT_ACC.getBytes());
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), SYSTEM_ACC.getBytes());
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), PROVIDER_ACC.getBytes());
     }
 
     @Test
-    public void holdSuccess() throws TException {
+    public void holdSuccess() throws TException, InterruptedException, IOException {
+
         handler.hold(TestData.postingPlanChange(), null);
+
+        Thread.sleep(1000);
 
         Balance balance = balanceDao.getBalance(MERCHANT_ACC);
 
@@ -72,7 +76,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void holdIdempotency() throws TException {
+    public void holdIdempotency() throws TException, InterruptedException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         handler.hold(plan1, null);
         handler.hold(plan1, null);
@@ -84,6 +88,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(plan2, null);
         handler.hold(plan2, null);
 
+        Thread.sleep(1000);
+
         Balance balance = balanceDao.getBalance(MERCHANT_ACC);
 
         Assert.assertNotNull(balance);
@@ -93,13 +99,16 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void holdWithClockRightInTime() throws TException {
+    public void holdWithClockRightInTime() throws TException, InterruptedException {
+
         PostingPlanChange plan1 = TestData.postingPlanChange();
         Clock clock = handler.hold(plan1, null);
 
         //second batch
         plan1.getBatch().setId(2L);
         handler.hold(plan1, clock);
+
+        Thread.sleep(1000);
 
         Balance balance = balanceDao.getBalance(MERCHANT_ACC);
 

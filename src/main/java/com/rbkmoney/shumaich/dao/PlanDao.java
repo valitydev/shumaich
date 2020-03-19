@@ -27,10 +27,10 @@ public class PlanDao extends RocksDbDao {
         return COLUMN_FAMILY_NAME.getBytes();
     }
 
-    @PreDestroy
-    public void destroy() {
-        super.destroyColumnFamilyHandle();
-    }
+//    @PreDestroy
+//    public void destroy() {
+//        super.destroyColumnFamilyHandle();
+//    }
 
     public void planModificationReceived(Transaction transaction, OperationLog operationLog) {
         try {
@@ -96,5 +96,9 @@ public class PlanDao extends RocksDbDao {
 
     private byte[] getKey(String planId, String operationType) {
         return String.format("%s_%s", planId, operationType).getBytes();
+    }
+
+    public ColumnFamilyHandle getColumnFamilyHandle() {
+        return columnFamilyHandle;
     }
 }

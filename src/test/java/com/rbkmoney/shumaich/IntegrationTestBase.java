@@ -60,9 +60,12 @@ public abstract class IntegrationTestBase {
     @SpyBean
     protected KafkaOffsetDao kafkaOffsetDao;
 
-    @ClassRule
-    public static EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
+    public static final EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
             OPERATION_LOG_TOPIC, OPERATION_LOG_TOPIC);
+
+    static {
+        kafka.before();
+    }
 
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder();

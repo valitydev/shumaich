@@ -18,5 +18,5 @@ public abstract class RocksDbDao {
 
     public void destroyColumnFamilyHandle() {
         this.columnFamilyHandle.close();
-    };
+    }
 }

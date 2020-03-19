@@ -17,20 +17,11 @@ import java.util.List;
 
 @Slf4j
 @ContextConfiguration(classes = {KafkaOffsetDao.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class KafkaOffsetDaoTest extends RocksdbTestBase {
 
     @Autowired
     KafkaOffsetDao kafkaOffsetDao;
-
-    @Autowired
-    RocksDB rocksDB;
-
-    @After
-    public void cleanup() throws IOException {
-        folder.delete();
-        folder.create();
-    }
 
     @Test
     public void saveAndLoad() {

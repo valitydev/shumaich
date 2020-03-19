@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.mock;
  */
 @Slf4j
 @ContextConfiguration(classes = {SimpleTopicConsumerIntegrationTest.Config.class})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
@@ -41,17 +43,6 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
-
-    @Before
-    public void clear() throws InterruptedException {
-        operationLogTopicConsumptionManager.shutdownConsumers();
-    }
-
-    @After
-    public void cleanup() throws IOException {
-        folder.delete();
-        folder.create();
-    }
 
     @Test
     public void testCreationAndInteraction() throws InterruptedException, ExecutionException {
