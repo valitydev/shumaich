@@ -22,11 +22,11 @@ public class RocksDbConfiguration {
                           @Value("${rocksdb.dir}") String dbDir,
                           List<RocksDbDao> daoList) throws RocksDBException {
         TransactionDB.loadLibrary();
-        final DBOptions options = initDbOptions();
-        File dbFile = new File(dbDir, name);
-        ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<>();
-        try {
-            TransactionDBOptions transactionDbOptions = new TransactionDBOptions();
+        try (DBOptions options = initDbOptions();
+             TransactionDBOptions transactionDbOptions = new TransactionDBOptions()) {
+
+            File dbFile = new File(dbDir, name);
+            ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<>();
             TransactionDB transactionDB = TransactionDB.open(options, transactionDbOptions, dbFile.getAbsolutePath(),
                     getColumnFamilyDescriptors(daoList), columnFamilyHandles);
             initDaos(columnFamilyHandles, daoList, transactionDB);

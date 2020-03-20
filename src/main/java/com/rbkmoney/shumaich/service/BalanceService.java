@@ -36,7 +36,7 @@ public class BalanceService {
         if (planService.operationLogExists(operationLog)) {
             return;
         }
-        WriteOptions writeOptions = new WriteOptions().setSync(true);
+        WriteOptions writeOptions = new WriteOptions().setSync(true); //NOSONAR write options are actually closed
         Transaction transaction = rocksDB.beginTransaction(writeOptions);
         try {
             formHoldTransaction(operationLog, transaction);

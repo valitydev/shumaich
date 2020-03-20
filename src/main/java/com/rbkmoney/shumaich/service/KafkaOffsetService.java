@@ -40,17 +40,13 @@ public class KafkaOffsetService {
     }
 
     public void saveOffsets(List<KafkaOffset> kafkaOffsets) {
-        WriteBatch writeBatch = new WriteBatch();
-        WriteOptions writeOptions = new WriteOptions().setSync(true);
-        try {
+        try (WriteBatch writeBatch = new WriteBatch();
+             WriteOptions writeOptions = new WriteOptions().setSync(true)) {
             prepareBatch(kafkaOffsets, writeBatch);
             kafkaOffsetDao.putBatch(writeOptions, writeBatch);
         } catch (RocksDBException e) {
             log.error("Putting kafkaOffset to writeBatch exception:{}", kafkaOffsets, e);
             throw new DaoException("Putting kafkaOffset to writeBatch exception: " + kafkaOffsets, e);
-        } finally {
-            writeBatch.close();
-            writeOptions.close();
         }
     }
 

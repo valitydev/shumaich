@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class KafkaOffsetDao extends RocksDbDao {
 
-    private final static String COLUMN_FAMILY_NAME = "kafkaOffset";
+    private static final String COLUMN_FAMILY_NAME = "kafkaOffset";
 
     @Override
     public byte[] getColumnFamilyName() {
