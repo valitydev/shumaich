@@ -33,7 +33,7 @@ public class BalanceService {
 
     //todo maybe we should do batch processing
     public void proceedHold(OperationLog operationLog) {
-        if (planService.operationLogExists(operationLog)) {
+        if (planService.operationLogExists(operationLog)) { //todo, do it inside transaction?
             return;
         }
         WriteOptions writeOptions = new WriteOptions().setSync(true); //NOSONAR write options are actually closed

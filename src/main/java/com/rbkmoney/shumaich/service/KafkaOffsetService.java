@@ -12,12 +12,14 @@ import org.rocksdb.WriteBatch;
 import org.rocksdb.WriteOptions;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Service
@@ -27,16 +29,16 @@ public class KafkaOffsetService {
     private final KafkaOffsetDao kafkaOffsetDao;
 
     public List<KafkaOffset> loadOffsets(Collection<TopicPartition> topicPartitions) {
-        List<KafkaOffset> kafkaOffsets = new ArrayList<>();
-        for (TopicPartition topicPartition : topicPartitions) {
-            Long offset = kafkaOffsetDao.get(topicPartition.toString());
+        return topicPartitions.stream()
+                .map(this::getKafkaOffset)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
 
-            if (offset == null)
-                continue;
+    private KafkaOffset getKafkaOffset(TopicPartition topicPartition) {
+        Long offset = kafkaOffsetDao.get(topicPartition.toString());
 
-            kafkaOffsets.add(new KafkaOffset(topicPartition, offset));
-        }
-        return kafkaOffsets;
+        return offset == null ? null : new KafkaOffset(topicPartition, offset);
     }
 
     public void saveOffsets(List<KafkaOffset> kafkaOffsets) {
@@ -60,7 +62,7 @@ public class KafkaOffsetService {
     public boolean isBeforeCurrentOffsets(List<KafkaOffset> clockKafkaOffsets) {
         List<TopicPartition> clockPartitions = clockKafkaOffsets.stream()
                 .map(KafkaOffset::getTopicPartition)
-                .collect(Collectors.toList());
+                .collect(toList());
 
         List<KafkaOffset> currentOffsets = loadOffsets(clockPartitions);
 
