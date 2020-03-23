@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.rbkmoney.shumaich.helpers.TestData.OPERATION_LOG_TOPIC;
+import static com.rbkmoney.shumaich.helpers.TestData.TEST_TOPIC;
 import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
@@ -50,17 +51,11 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected AdminClient kafkaAdminClient;
 
-    @Autowired
-    protected KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
-
-    @Autowired
-    private PostingPlanOperationToOperationLogListConverter converter;
-
     @SpyBean
     protected KafkaOffsetService kafkaOffsetService;
 
     public static final EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
-            OPERATION_LOG_TOPIC, OPERATION_LOG_TOPIC);
+            TEST_TOPIC, OPERATION_LOG_TOPIC);
 
     static {
         kafka.before();
@@ -131,21 +126,5 @@ public abstract class IntegrationTestBase {
     }
 
 
-    protected void sendPlanToPartition(PostingPlanOperation plan) {
-        List<OperationLog> operationLogs = converter.convert(plan);
-        for (OperationLog operationLog : operationLogs) {
-            sendOperationLogToPartition(operationLog);
-        }
-
-    }
-
-    protected void sendOperationLogToPartition(int partitionNumber) {
-        OperationLog requestLog = TestData.operationLog();
-        operationLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
-    }
-
-    protected void sendOperationLogToPartition(OperationLog operationLog) {
-        operationLogKafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog);
-    }
 
 }

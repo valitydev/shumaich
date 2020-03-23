@@ -1,6 +1,7 @@
 package com.rbkmoney.shumaich.service;
 
 import com.rbkmoney.shumaich.IntegrationTestBase;
+import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
@@ -19,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
@@ -31,6 +33,9 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
 
     @Autowired
     IdempotentTestHandler handler;
+
+    @Autowired
+    private PostingPlanOperationToOperationLogListConverter converter;
 
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
@@ -70,6 +75,20 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
 //        Assert.assertEquals(totalPostings * 2,
 //                handler.countReceivedRecords(testPlanId).intValue());
 //    }
+
+
+    private void sendPlanToPartition(PostingPlanOperation plan) {
+        List<OperationLog> operationLogs = converter.convert(plan);
+        for (OperationLog operationLog : operationLogs) {
+            sendOperationLogToPartition(operationLog);
+        }
+
+    }
+
+
+    private void sendOperationLogToPartition(OperationLog operationLog) {
+        operationLogKafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog);
+    }
 
     @Configuration
     public static class Config {
