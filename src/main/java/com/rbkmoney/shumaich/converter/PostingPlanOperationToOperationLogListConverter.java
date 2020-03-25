@@ -27,7 +27,7 @@ public class PostingPlanOperationToOperationLogListConverter {
             for (Posting posting : postingBatch.getPostings()) {
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                creationTime, postingBatch, posting, true)
+                                postingBatch, posting, true)
                 );
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
