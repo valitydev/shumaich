@@ -1,6 +1,5 @@
 package com.rbkmoney.shumaich.kafka;
 
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,5 @@
 package com.rbkmoney.shumaich.config;
 
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
@@ -100,7 +99,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    @DependsOn(value = "rocksDB")
+    @DependsOn(value = {"rocksDB", "kafkaOffsetDao"})
     public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetService kafkaOffsetService,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {

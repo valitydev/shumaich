@@ -1,6 +1,5 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
@@ -8,7 +7,10 @@ import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rocksdb.*;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.Transaction;
+import org.rocksdb.TransactionDB;
+import org.rocksdb.WriteOptions;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -60,7 +62,7 @@ public class BalanceService {
         }
     }
 
-    private void formHoldTransaction(OperationLog operationLog, Transaction transaction) throws RocksDBException {
+    private void formHoldTransaction(OperationLog operationLog, Transaction transaction) {
         Balance balanceForUpdate = balanceDao.getForUpdate(transaction, getKey(operationLog.getAccount()));
         Balance balance = calculateBalance(balanceForUpdate, operationLog);
         balanceDao.putInTransaction(transaction, balance);

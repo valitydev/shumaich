@@ -1,8 +1,6 @@
 package com.rbkmoney.shumaich.service;
 
 
-import com.rbkmoney.shumaich.dao.BalanceDao;
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +17,7 @@ public class OperationLogHandlerService implements Handler<OperationLog> {
 
     @Override
     public void handle(ConsumerRecords<?, OperationLog> records) {
-//todo log rbk library        log.info("Received records: {}", records);
+        //todo log rbk library        log.info("Received records: {}", records);
         for (ConsumerRecord<?, OperationLog> record : records) {
             OperationLog operationLog = record.value();
             switch (operationLog.getOperationType()) {

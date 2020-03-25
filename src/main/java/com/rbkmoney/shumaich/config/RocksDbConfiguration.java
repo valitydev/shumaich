@@ -13,15 +13,17 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.rocksdb.RocksDB.loadLibrary;
+
 @Slf4j
 @Configuration
 public class RocksDbConfiguration {
 
-    @Bean(destroyMethod = "close")
+    @Bean(destroyMethod = "closeE")
     TransactionDB rocksDB(@Value("${rocksdb.name}") String name,
                           @Value("${rocksdb.dir}") String dbDir,
                           List<RocksDbDao> daoList) throws RocksDBException {
-        TransactionDB.loadLibrary();
+        loadLibrary();
         try (DBOptions options = initDbOptions();
              TransactionDBOptions transactionDbOptions = new TransactionDBOptions()) {
 
@@ -42,6 +44,13 @@ public class RocksDbConfiguration {
         final DBOptions options = new DBOptions();
         options.setCreateIfMissing(true);
         options.setCreateMissingColumnFamilies(true);
+        options.setLogger(new Logger(options) {
+            @Override
+            protected void log(InfoLogLevel infoLogLevel, String logMsg) {
+                log.error(logMsg);
+            }
+        });
+        options.setInfoLogLevel(InfoLogLevel.DEBUG_LEVEL);
         return options;
     }
 

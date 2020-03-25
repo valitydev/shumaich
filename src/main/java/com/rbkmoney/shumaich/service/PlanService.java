@@ -1,13 +1,10 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.Plan;
 import com.rbkmoney.shumaich.domain.PlanBatch;
 import lombok.RequiredArgsConstructor;
-import org.rocksdb.ReadOptions;
-import org.rocksdb.RocksDBException;
 import org.rocksdb.Transaction;
 import org.springframework.stereotype.Service;
 

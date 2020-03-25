@@ -31,7 +31,7 @@ public class PostingPlanOperationToOperationLogListConverter {
                 );
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                creationTime, postingBatch, posting, false)
+                                postingBatch, posting, false)
                 );
             }
         }
@@ -41,7 +41,6 @@ public class PostingPlanOperationToOperationLogListConverter {
     private OperationLog createOperationLog(PostingPlanOperation source,
                                             long totalOperations,
                                             Long sequenceId,
-                                            Instant creationTime,
                                             PostingBatch postingBatch,
                                             Posting posting,
                                             boolean first) {

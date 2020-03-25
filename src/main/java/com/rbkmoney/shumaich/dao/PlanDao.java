@@ -6,7 +6,6 @@ import com.rbkmoney.shumaich.domain.Plan;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.ReadOptions;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.Transaction;

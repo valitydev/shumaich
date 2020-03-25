@@ -1,14 +1,13 @@
 package com.rbkmoney.shumaich.dao;
 
 import com.rbkmoney.shumaich.converter.CommonConverter;
-import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.rocksdb.*;
-import org.springframework.lang.Nullable;
+import org.rocksdb.ReadOptions;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.Transaction;
 import org.springframework.stereotype.Component;
 
 @Slf4j

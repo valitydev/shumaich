@@ -1,21 +1,13 @@
 package com.rbkmoney.shumaich.dao;
 
 import com.rbkmoney.shumaich.converter.CommonConverter;
-import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.TopicPartition;
-import org.rocksdb.*;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.WriteBatch;
+import org.rocksdb.WriteOptions;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
