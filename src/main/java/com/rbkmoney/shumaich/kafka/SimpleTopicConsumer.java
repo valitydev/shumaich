@@ -14,14 +14,13 @@ import org.apache.kafka.common.errors.WakeupException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 public class SimpleTopicConsumer<K, V> implements Runnable {
 
-    private AtomicBoolean alive = new AtomicBoolean(true);
+    private volatile boolean alive = true;
     private KafkaConsumer<K, V> consumer;
 
     private final Map<String, Object> consumerProps;
@@ -41,7 +40,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     }
 
     public boolean isAlive() {
-        return alive.get();
+        return alive;
     }
 
     @Override
@@ -62,8 +61,8 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
         } catch (Exception e) {
             log.error("Error during Kafka polling", e);
         } finally {
-            alive.set(false);
             consumer.close();
+            alive = false;
         }
     }
 
