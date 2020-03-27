@@ -11,6 +11,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
+import org.joor.Reflect;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
@@ -91,7 +93,8 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         registerReceivedMessages(1, receivedRecordsSize, testLogHandler);
 
         //reloading consumers for offset change
-        testLogTopicConsumptionManager.shutdownConsumers();
+        testLogTopicConsumptionManager.shutdownConsumersGracefully();
+        Reflect.on(testLogTopicConsumptionManager).set("destroying", new AtomicBoolean(false));
 
         //writing data
         for (int i = 0; i < 20; i++) {
@@ -162,6 +165,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         private static final String EARLIEST = "earliest";
 
         @Bean
+        @DependsOn(value = "rocksDB")
         public KafkaTemplate<String, String> testLogKafkaTemplate() {
             Map<String, Object> configs = KafkaTestUtils.producerProps(kafka.getEmbeddedKafka());
             configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);

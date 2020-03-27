@@ -58,10 +58,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
             }
 
         } catch (WakeupException e) {
-            // Ignore exception if closing
-            if (isAlive()) {
-                log.error("External wakeup call occurred", e);
-            }
+            log.info("Wakeup call occurred", e);
         } catch (Exception e) {
             log.error("Error during Kafka polling", e);
         } finally {
@@ -71,16 +68,21 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     }
 
     private void initConsumer() {
-        consumer = new KafkaConsumer<>(consumerProps);
-        consumer.assign(assignedPartitions);
-        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
-        kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
+        log.debug("Initializing consumer for topic and partitions: {}", assignedPartitions);
+        synchronized (this) {
+            consumer = new KafkaConsumer<>(consumerProps);
+            consumer.assign(assignedPartitions);
+            List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
+            kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
+        }
+        log.debug("Initialized consumer for topic and partitions: {}", assignedPartitions);
     }
 
     public void shutdown() {
-        log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
-        alive.set(false);
-        consumer.wakeup(); //todo research why NPE?
+        synchronized (this) {
+            log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
+            consumer.wakeup();
+        }
     }
 
     private void saveOffsetsAndSeek(ConsumerRecords<K, V> records) {

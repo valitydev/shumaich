@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.rocksdb.RocksDB.loadLibrary;
-
 @Slf4j
 @Configuration
 public class RocksDbConfiguration {
@@ -22,14 +20,13 @@ public class RocksDbConfiguration {
     @Bean(destroyMethod = "closeE")
     TransactionDB rocksDB(@Value("${rocksdb.name}") String name,
                           @Value("${rocksdb.dir}") String dbDir,
-                          List<RocksDbDao> daoList) throws RocksDBException {
-        loadLibrary();
-        try (DBOptions options = initDbOptions();
-             TransactionDBOptions transactionDbOptions = new TransactionDBOptions()) {
-
+                          List<RocksDbDao> daoList,
+                          DBOptions dbOptions,
+                          TransactionDBOptions transactionDbOptions) throws RocksDBException {
+        try {
             File dbFile = new File(dbDir, name);
             ArrayList<ColumnFamilyHandle> columnFamilyHandles = new ArrayList<>();
-            TransactionDB transactionDB = TransactionDB.open(options, transactionDbOptions, dbFile.getAbsolutePath(),
+            TransactionDB transactionDB = TransactionDB.open(dbOptions, transactionDbOptions, dbFile.getAbsolutePath(),
                     getColumnFamilyDescriptors(daoList), columnFamilyHandles);
             initDaos(columnFamilyHandles, daoList, transactionDB);
             return transactionDB;
@@ -40,20 +37,19 @@ public class RocksDbConfiguration {
         }
     }
 
-    private DBOptions initDbOptions() {
+    @Bean(destroyMethod = "close")
+    public DBOptions dbOptions() {
         final DBOptions options = new DBOptions();
         options.setCreateIfMissing(true);
         options.setCreateMissingColumnFamilies(true);
-        options.setLogger(new Logger(options) {
-            @Override
-            protected void log(InfoLogLevel infoLogLevel, String logMsg) {
-                log.error(logMsg);
-            }
-        });
         options.setInfoLogLevel(InfoLogLevel.DEBUG_LEVEL);
         return options;
     }
 
+    @Bean(destroyMethod = "close")
+    public TransactionDBOptions transactionDbOptions() {
+        return new TransactionDBOptions();
+    }
 
     private List<ColumnFamilyDescriptor> getColumnFamilyDescriptors(List<RocksDbDao> daoList) {
         List<ColumnFamilyDescriptor> descriptors = daoList.stream()

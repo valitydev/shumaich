@@ -78,6 +78,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
+    @DependsOn(value = "rocksDB")
     public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -99,7 +100,7 @@ public class KafkaConfiguration {
     }
 
     @Bean
-    @DependsOn(value = {"rocksDB", "kafkaOffsetDao"})
+    @DependsOn("rocksDB")
     public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetService kafkaOffsetService,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
