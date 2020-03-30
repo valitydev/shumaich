@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static com.rbkmoney.shumaich.helpers.TestData.TEST_TOPIC;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -72,7 +73,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         int testPartition = 0;
         sendTestLogToPartition(testPartition);
 
-        await().untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(1)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });
@@ -80,7 +81,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         IntStream.range(0, 10).forEach(ignore -> sendTestLogToPartition(testPartition));
 
-        await().untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
             checkOffsets(testPartition, 11L, TEST_TOPIC);
 
@@ -105,7 +106,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         }
 
         //waiting consumers to wake up
-        await().untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
             //we skipped 10 messages, assuming to have 10 more in partition 1
             Assert.assertEquals(10, receivedRecordsSize.get());
             checkOffsets(testPartition, 20L, TEST_TOPIC);
@@ -123,7 +124,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        await().untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(3)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });
@@ -140,7 +141,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        await().untilAsserted(() -> {
+        await().atMost(10, SECONDS).untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });

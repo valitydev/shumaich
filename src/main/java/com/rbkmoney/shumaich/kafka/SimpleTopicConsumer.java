@@ -9,6 +9,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.errors.WakeupException;
 
 import java.time.Duration;
@@ -57,6 +58,8 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
 
         } catch (WakeupException e) {
             log.info("Wakeup call occurred", e);
+        } catch (InterruptException e) { //kafka exception, not java.lang.
+            log.info("Thread was interrupted");
         } catch (Exception e) {
             log.error("Error during Kafka polling", e);
         } finally {
