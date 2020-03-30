@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static com.rbkmoney.shumaich.helpers.TestData.TEST_TOPIC;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
@@ -71,17 +72,19 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         int testPartition = 0;
         sendTestLogToPartition(testPartition);
 
-        Thread.sleep(2000);
+        await().untilAsserted(() -> {
+            Mockito.verify(testLogHandler, Mockito.atLeast(1)).handle(any());
+            checkOffsets(testPartition, 1L, TEST_TOPIC);
+        });
 
-        Mockito.verify(testLogHandler, Mockito.atLeast(1)).handle(any());
-        checkOffsets(testPartition, 1L, TEST_TOPIC);
 
         IntStream.range(0, 10).forEach(ignore -> sendTestLogToPartition(testPartition));
 
-        Thread.sleep(2000);
+        await().untilAsserted(() -> {
+            Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
+            checkOffsets(testPartition, 11L, TEST_TOPIC);
 
-        Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
-        checkOffsets(testPartition, 11L, TEST_TOPIC);
+        });
     }
 
     @Test
@@ -102,11 +105,11 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         }
 
         //waiting consumers to wake up
-        Thread.sleep(3000);
-
-        //we skipped 10 messages, assuming to have 10 more in partition 1
-        Assert.assertEquals(10, receivedRecordsSize.get());
-        checkOffsets(testPartition, 20L, TEST_TOPIC);
+        await().untilAsserted(() -> {
+            //we skipped 10 messages, assuming to have 10 more in partition 1
+            Assert.assertEquals(10, receivedRecordsSize.get());
+            checkOffsets(testPartition, 20L, TEST_TOPIC);
+        });
     }
 
     @Test
@@ -120,10 +123,10 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        Thread.sleep(6000);
-
-        Mockito.verify(testLogHandler, Mockito.atLeast(3)).handle(any());
-        checkOffsets(testPartition, 1L, TEST_TOPIC);
+        await().untilAsserted(() -> {
+            Mockito.verify(testLogHandler, Mockito.atLeast(3)).handle(any());
+            checkOffsets(testPartition, 1L, TEST_TOPIC);
+        });
     }
 
     @Test
@@ -137,10 +140,10 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        Thread.sleep(5000);
-
-        Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
-        checkOffsets(testPartition, 1L, TEST_TOPIC);
+        await().untilAsserted(() -> {
+            Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
+            checkOffsets(testPartition, 1L, TEST_TOPIC);
+        });
     }
 
     private void sendTestLogToPartition(int testPartition) {
@@ -179,8 +182,8 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         @Bean
         @DependsOn(value = "rocksDB")
         public TopicConsumptionManager<String, String> testLogTopicConsumptionManager(AdminClient kafkaAdminClient,
-                                                                                                 KafkaOffsetService kafkaOffsetService,
-                                                                                                 Handler<String> handler) throws ExecutionException, InterruptedException {
+                                                                                      KafkaOffsetService kafkaOffsetService,
+                                                                                      Handler<String> handler) throws ExecutionException, InterruptedException {
             Map<String, Object> consumerProps = new HashMap<>();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getEmbeddedKafka().getBrokersAsString());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);

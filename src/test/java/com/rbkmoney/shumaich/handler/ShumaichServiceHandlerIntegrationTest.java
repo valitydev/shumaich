@@ -16,7 +16,9 @@ import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
-import org.junit.*;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ import java.io.IOException;
 import java.util.Map;
 
 import static com.rbkmoney.shumaich.helpers.TestData.*;
+import static org.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.given;
+import static org.hamcrest.CoreMatchers.notNullValue;
 
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
@@ -61,15 +66,14 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         handler.hold(TestData.postingPlanChange(), null);
 
-        Thread.sleep(1000);
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
 
-        Balance balance = balanceDao.get(MERCHANT_ACC);
-
-        Assert.assertNotNull(balance);
-        Assert.assertEquals(0, balance.getAmount().intValue());
-        Assert.assertEquals(-3, balance.getMinAmount().intValue());
-        Assert.assertEquals(100, balance.getMaxAmount().intValue());
-
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(0, balance.getAmount().intValue());
+            Assert.assertEquals(-3, balance.getMinAmount().intValue());
+            Assert.assertEquals(100, balance.getMaxAmount().intValue());
+        });
 
     }
 
@@ -86,14 +90,13 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(plan2, null);
         handler.hold(plan2, null);
 
-        Thread.sleep(1000);
-
-        Balance balance = balanceDao.get(MERCHANT_ACC);
-
-        Assert.assertNotNull(balance);
-        Assert.assertEquals(0, balance.getAmount().intValue());
-        Assert.assertEquals(-6, balance.getMinAmount().intValue());
-        Assert.assertEquals(200, balance.getMaxAmount().intValue());
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(0, balance.getAmount().intValue());
+            Assert.assertEquals(-6, balance.getMinAmount().intValue());
+            Assert.assertEquals(200, balance.getMaxAmount().intValue());
+        });
     }
 
     @Test
@@ -102,20 +105,21 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         Clock clock = handler.hold(plan1, null);
 
-        Thread.sleep(1000);
-
         //second batch
         plan1.getBatch().setId(2L);
-        handler.hold(plan1, clock);
 
-        Thread.sleep(1000);
+        given().ignoreExceptions().await()
+                .until(() -> handler.hold(plan1, clock), notNullValue());
 
-        Balance balance = balanceDao.get(MERCHANT_ACC);
 
-        Assert.assertNotNull(balance);
-        Assert.assertEquals(0, balance.getAmount().intValue());
-        Assert.assertEquals(-6, balance.getMinAmount().intValue());
-        Assert.assertEquals(200, balance.getMaxAmount().intValue());
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(0, balance.getAmount().intValue());
+            Assert.assertEquals(-6, balance.getMinAmount().intValue());
+            Assert.assertEquals(200, balance.getMaxAmount().intValue());
+        });
     }
 
     @Test(expected = NotReadyException.class)

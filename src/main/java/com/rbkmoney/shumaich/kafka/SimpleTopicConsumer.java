@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SimpleTopicConsumer<K, V> implements Runnable {
 
-    private volatile boolean alive = true;
     private KafkaConsumer<K, V> consumer;
 
     private final Map<String, Object> consumerProps;
@@ -40,7 +39,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     }
 
     public boolean isAlive() {
-        return alive;
+        return !Thread.currentThread().isInterrupted();
     }
 
     @Override
@@ -62,26 +61,16 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
             log.error("Error during Kafka polling", e);
         } finally {
             consumer.close();
-            alive = false;
         }
     }
 
     private void initConsumer() {
         log.debug("Initializing consumer for topic and partitions: {}", assignedPartitions);
-        synchronized (this) {
-            consumer = new KafkaConsumer<>(consumerProps);
-            consumer.assign(assignedPartitions);
-            List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
-            kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
-        }
+        consumer = new KafkaConsumer<>(consumerProps);
+        consumer.assign(assignedPartitions);
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
+        kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
         log.debug("Initialized consumer for topic and partitions: {}", assignedPartitions);
-    }
-
-    public void shutdown() {
-        synchronized (this) {
-            log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
-            consumer.wakeup();
-        }
     }
 
     private void saveOffsetsAndSeek(ConsumerRecords<K, V> records) {

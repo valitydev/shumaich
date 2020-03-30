@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -37,7 +38,6 @@ public class TopicConsumptionManager<K, V> {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
         int consumersAmount = (int) Math.ceil(topicPartitions.size() / (double) partitionsPerThread);
         this.executorService = Executors.newFixedThreadPool(consumersAmount);
-
         for (int i = 0; i < consumersAmount; i++) {
             consumers.add(
                     new SimpleTopicConsumer<>(
@@ -60,32 +60,27 @@ public class TopicConsumptionManager<K, V> {
 
     @Scheduled(fixedRateString = "${kafka.topics.consumer-monitor-rate}")
     public void monitorConsumers() {
-        synchronized (destroying) {
-            if (!initialized || destroying.get())
-                return;
+        if (!initialized || destroying.get())
+            return;
 
-            List<SimpleTopicConsumer<K, V>> deadConsumers = consumers.stream()
-                    .filter(Predicate.not(SimpleTopicConsumer::isAlive))
-                    .collect(Collectors.toList());
+        List<SimpleTopicConsumer<K, V>> deadConsumers = consumers.stream()
+                .filter(Predicate.not(SimpleTopicConsumer::isAlive))
+                .collect(Collectors.toList());
 
-            log.info("Consumers state, total:{}, alive:{}, dead:{}", consumers.size(),
-                    consumers.size() - deadConsumers.size(),
-                    deadConsumers.size());
+        log.info("Consumers state, total:{}, alive:{}, dead:{}", consumers.size(),
+                consumers.size() - deadConsumers.size(),
+                deadConsumers.size());
 
-            consumers.removeAll(deadConsumers);
-            consumers.addAll(restartDeadConsumers(deadConsumers));
-        }
+        consumers.removeAll(deadConsumers);
+        consumers.addAll(restartDeadConsumers(deadConsumers));
     }
 
     @PreDestroy
     public void shutdownConsumersGracefully() throws InterruptedException {
-        synchronized (destroying) {
-            destroying.set(true);
+        if (destroying.compareAndSet(false, true)) {
             log.info("Consumers shutting down...");
-            consumers.forEach(SimpleTopicConsumer::shutdown);
-            while (consumers.stream().anyMatch(SimpleTopicConsumer::isAlive)) {
-                Thread.sleep(100); //NOSONAR lock SHOULDN'T be released!
-            }
+            executorService.shutdownNow();
+            executorService.awaitTermination(1, TimeUnit.MINUTES);
             log.info("Consumers shutted down...");
         }
     }

@@ -8,8 +8,8 @@ import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.*;
-import org.mockito.Mockito;
+import org.junit.Assert;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
@@ -19,9 +19,10 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+
+import static org.awaitility.Awaitility.await;
 
 @Slf4j
 @ContextConfiguration(classes = {OperationLogHandlerServiceIntegrationTest.Config.class})
@@ -46,13 +47,11 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
         PostingPlanOperation plan = TestData.postingPlanOperation(testPlanId);
         sendPlanToPartition(plan);
 
-        Thread.sleep(3000);
-
         int totalPostings = plan.getPostingBatches().stream()
                 .mapToInt(postingBatch -> postingBatch.getPostings().size()).sum();
 
-        Assert.assertEquals(totalPostings * 2,
-                handler.countReceivedRecords(testPlanId).intValue());
+        await().untilAsserted(() ->
+                Assert.assertEquals(totalPostings * 2, handler.countReceivedRecords(testPlanId).intValue()));
     }
 
 //
