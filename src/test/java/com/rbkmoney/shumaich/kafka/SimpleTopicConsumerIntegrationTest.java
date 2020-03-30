@@ -32,12 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 import static com.rbkmoney.shumaich.helpers.TestData.TEST_TOPIC;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -73,7 +73,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         int testPartition = 0;
         sendTestLogToPartition(testPartition);
 
-        await().atMost(10, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(1)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });
@@ -81,7 +81,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         IntStream.range(0, 10).forEach(ignore -> sendTestLogToPartition(testPartition));
 
-        await().atMost(10, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
             checkOffsets(testPartition, 11L, TEST_TOPIC);
 
@@ -99,6 +99,8 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         //reloading consumers for offset change
         testLogTopicConsumptionManager.shutdownConsumersGracefully();
         Reflect.on(testLogTopicConsumptionManager).set("destroying", new AtomicBoolean(false));
+        Reflect.on(testLogTopicConsumptionManager).set("executorService", Executors.newFixedThreadPool(10));
+        testLogTopicConsumptionManager.submitConsumers();
 
         //writing data
         for (int i = 0; i < 20; i++) {
@@ -106,7 +108,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         }
 
         //waiting consumers to wake up
-        await().atMost(10, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             //we skipped 10 messages, assuming to have 10 more in partition 1
             Assert.assertEquals(10, receivedRecordsSize.get());
             checkOffsets(testPartition, 20L, TEST_TOPIC);
@@ -124,7 +126,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        await().atMost(10, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(3)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });
@@ -141,7 +143,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         sendTestLogToPartition(testPartition);
 
-        await().atMost(10, SECONDS).untilAsserted(() -> {
+        await().untilAsserted(() -> {
             Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });

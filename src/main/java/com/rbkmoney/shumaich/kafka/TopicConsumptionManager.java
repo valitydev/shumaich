@@ -38,6 +38,7 @@ public class TopicConsumptionManager<K, V> {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
         int consumersAmount = (int) Math.ceil(topicPartitions.size() / (double) partitionsPerThread);
         this.executorService = Executors.newFixedThreadPool(consumersAmount);
+
         for (int i = 0; i < consumersAmount; i++) {
             consumers.add(
                     new SimpleTopicConsumer<>(
