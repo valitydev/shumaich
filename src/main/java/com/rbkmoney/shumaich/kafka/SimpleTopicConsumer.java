@@ -1,32 +1,32 @@
 package com.rbkmoney.shumaich.kafka;
 
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.InterruptException;
 import org.apache.kafka.common.errors.WakeupException;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 public class SimpleTopicConsumer<K, V> implements Runnable {
 
-    private AtomicBoolean alive = new AtomicBoolean(true);
+    private volatile boolean alive = true;
     private KafkaConsumer<K, V> consumer;
 
     private final Map<String, Object> consumerProps;
     private final List<TopicPartition> assignedPartitions;
-    private final KafkaOffsetDao kafkaOffsetDao;
+    private final KafkaOffsetService kafkaOffsetService;
     private final Handler<V> handler;
     private final Long pollingTimeout;
 
@@ -34,14 +34,14 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
         return new SimpleTopicConsumer<>(
                 otherConsumer.consumerProps,
                 otherConsumer.assignedPartitions,
-                otherConsumer.kafkaOffsetDao,
+                otherConsumer.kafkaOffsetService,
                 otherConsumer.handler,
                 otherConsumer.pollingTimeout
         );
     }
 
     public boolean isAlive() {
-        return alive.get();
+        return alive && !Thread.currentThread().isInterrupted();
     }
 
     @Override
@@ -58,29 +58,26 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
             }
 
         } catch (WakeupException e) {
-            // Ignore exception if closing
-            if (isAlive()) {
-                log.error("External wakeup call occurred", e);
-            }
+            log.info("Wakeup call occurred", e);
+        } catch (InterruptException e) { //kafka exception, not java.lang.
+            log.info("Thread was interrupted");
         } catch (Exception e) {
             log.error("Error during Kafka polling", e);
         } finally {
-            alive.set(false);
             consumer.close();
+            alive = false;
         }
     }
 
-    public void shutdown() {
-        log.info("Closing consumer for topic and partitions: {}", assignedPartitions);
-        alive.set(false);
-        consumer.wakeup();
-    }
-
     private void initConsumer() {
+        log.debug("Initializing consumer for topic and partitions: {}", assignedPartitions);
+
         consumer = new KafkaConsumer<>(consumerProps);
         consumer.assign(assignedPartitions);
-        List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(assignedPartitions);
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(assignedPartitions);
         kafkaOffsets.forEach(kafkaOffset -> consumer.seek(kafkaOffset.getTopicPartition(), kafkaOffset.getOffset()));
+
+        log.debug("Initialized consumer for topic and partitions: {}", assignedPartitions);
     }
 
     private void saveOffsetsAndSeek(ConsumerRecords<K, V> records) {
@@ -89,7 +86,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
                 .map(topicPartition -> getLatestKafkaOffset(records, topicPartition))
                 .collect(Collectors.toList());
 
-        kafkaOffsetDao.saveOffsets(offsets);
+        kafkaOffsetService.saveOffsets(offsets);
 
         offsets.forEach(offset -> consumer.seek(offset.getTopicPartition(), offset.getOffset()));
     }

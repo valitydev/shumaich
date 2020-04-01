@@ -1,10 +1,13 @@
 package com.rbkmoney.shumaich.utils;
 
 import com.rbkmoney.damsel.shumpune.VectorClock;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.nio.ByteBuffer;
 
-public class VectorClockSerializer {
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class VectorClockSerde {
 
     public static VectorClock serialize(String clock) {
         return new VectorClock(ByteBuffer.wrap(clock.getBytes()));

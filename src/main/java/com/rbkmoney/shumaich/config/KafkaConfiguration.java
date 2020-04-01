@@ -1,11 +1,11 @@
 package com.rbkmoney.shumaich.config;
 
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -20,6 +20,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 
@@ -43,9 +44,6 @@ public class KafkaConfiguration {
 
     @Value("${kafka.topics.polling-timeout}")
     private Long pollingTimeout;
-
-    @Value("${kafka.topics.request-log-name}")
-    private String requestLogTopicName;
 
     @Value("${kafka.topics.operation-log-name}")
     private String operationLogTopicName;
@@ -80,12 +78,13 @@ public class KafkaConfiguration {
     }
 
     @Bean
+    @DependsOn(value = "rocksDB")
     public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
         KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
-                new DefaultKafkaProducerFactory<>(configs), false);
+                new DefaultKafkaProducerFactory<>(configs), true);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
     }
@@ -101,8 +100,9 @@ public class KafkaConfiguration {
     }
 
     @Bean
+    @DependsOn("rocksDB")
     public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
-                                                                                             KafkaOffsetDao kafkaOffsetDao,
+                                                                                             KafkaOffsetService kafkaOffsetService,
                                                                                              Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -117,7 +117,7 @@ public class KafkaConfiguration {
         return new TopicConsumptionManager<>(topicDescription,
                 partitionsPerThread,
                 consumerProps,
-                kafkaOffsetDao,
+                kafkaOffsetService,
                 handler,
                 pollingTimeout
         );

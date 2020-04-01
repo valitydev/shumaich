@@ -6,7 +6,6 @@ import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -22,16 +21,15 @@ public class PostingPlanOperationToOperationLogListConverter {
                 .mapToLong(postingBatch -> postingBatch.getPostings().size())
                 .sum();
         PrimitiveIterator.OfLong sequenceId = LongStream.range(0, totalOperations).iterator();
-        Instant creationTime = Instant.now();
         for (PostingBatch postingBatch : source.getPostingBatches()) {
             for (Posting posting : postingBatch.getPostings()) {
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                creationTime, postingBatch, posting, true)
+                                postingBatch, posting, true)
                 );
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                creationTime, postingBatch, posting, false)
+                                postingBatch, posting, false)
                 );
             }
         }
@@ -41,7 +39,6 @@ public class PostingPlanOperationToOperationLogListConverter {
     private OperationLog createOperationLog(PostingPlanOperation source,
                                             long totalOperations,
                                             Long sequenceId,
-                                            Instant creationTime,
                                             PostingBatch postingBatch,
                                             Posting posting,
                                             boolean first) {
@@ -57,7 +54,6 @@ public class PostingPlanOperationToOperationLogListConverter {
                         : Math.negateExact(posting.getAmount()))
                 .currencySymbolicCode(posting.getCurrencySymbolicCode())
                 .description(posting.getDescription())
-                .creationTime(creationTime.toString())
                 .sequence(sequenceId)
                 .total(totalOperations)
                 .build();

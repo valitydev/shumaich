@@ -14,7 +14,7 @@ public class PostingPlanToPostingPlanOperationConverter {
 
     private final PostingBatchDamselToPostingBatchConverter converter;
 
-    PostingPlanOperation convert(PostingPlan source, OperationType operationType) {
+    public PostingPlanOperation convert(PostingPlan source, OperationType operationType) {
         return PostingPlanOperation.builder()
                 .planId(source.getId())
                 .postingBatches(source.batch_list.stream().map(converter::convert).collect(Collectors.toList()))

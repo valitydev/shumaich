@@ -17,8 +17,6 @@ public class OperationLog {
     private Long amountWithSign;
     private String currencySymbolicCode;
     private String description;
-    //todo remove?
-    private String creationTime;
     private Long sequence;
     private Long total;
 }

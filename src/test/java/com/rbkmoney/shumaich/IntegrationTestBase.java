@@ -2,12 +2,12 @@ package com.rbkmoney.shumaich;
 
 
 import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
-import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.AdminClient;
@@ -38,6 +38,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.rbkmoney.shumaich.helpers.TestData.OPERATION_LOG_TOPIC;
+import static com.rbkmoney.shumaich.helpers.TestData.TEST_TOPIC;
 import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
@@ -50,18 +51,15 @@ public abstract class IntegrationTestBase {
     @Autowired
     protected AdminClient kafkaAdminClient;
 
-    @Autowired
-    protected KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
-
-    @Autowired
-    private PostingPlanOperationToOperationLogListConverter converter;
-
     @SpyBean
-    protected KafkaOffsetDao kafkaOffsetDao;
+    protected KafkaOffsetService kafkaOffsetService;
 
-    @ClassRule
-    public static EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
-            OPERATION_LOG_TOPIC, OPERATION_LOG_TOPIC);
+    public static final EmbeddedKafkaRule kafka = new EmbeddedKafkaRule(1, true, 10,
+            TEST_TOPIC, OPERATION_LOG_TOPIC);
+
+    static {
+        kafka.before();
+    }
 
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder();
@@ -72,7 +70,7 @@ public abstract class IntegrationTestBase {
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
                     .of("kafka.bootstrap.servers=" + kafka.getEmbeddedKafka().getBrokersAsString(),
-                            "rocksdb.name=test" ,
+                            "rocksdb.name=test",
                             "rocksdb.dir=" + folder.newFolder())
                     .applyTo(configurableApplicationContext.getEnvironment());
         }
@@ -89,7 +87,7 @@ public abstract class IntegrationTestBase {
     protected void setInitialOffsets(int partitionNumber, Long initialOffsets, String topicName) throws InterruptedException, ExecutionException {
         List<TopicPartitionInfo> partitions = getTopicPartitions(topicName);
 
-        kafkaOffsetDao.saveOffsets(partitions.stream()
+        kafkaOffsetService.saveOffsets(partitions.stream()
                 .filter(partition -> partition.partition() == partitionNumber)
                 .map(topicPartitionInfo -> TestData.kafkaOffset(
                         topicName,
@@ -102,7 +100,7 @@ public abstract class IntegrationTestBase {
     protected void checkOffsets(int partitionNumber, Long expectedOffset, String topicName) throws ExecutionException, InterruptedException {
         List<TopicPartitionInfo> partitions = getTopicPartitions(topicName);
 
-        List<KafkaOffset> kafkaOffsets = kafkaOffsetDao.loadOffsets(partitions.stream()
+        List<KafkaOffset> kafkaOffsets = kafkaOffsetService.loadOffsets(partitions.stream()
                 .filter(partition -> partition.partition() == partitionNumber)
                 .map(topicPartitionInfo -> new TopicPartition(topicName, topicPartitionInfo.partition()))
                 .collect(Collectors.toList())
@@ -128,21 +126,5 @@ public abstract class IntegrationTestBase {
     }
 
 
-    protected void sendPlanToPartition(PostingPlanOperation plan) {
-        List<OperationLog> operationLogs = converter.convert(plan);
-        for (OperationLog operationLog : operationLogs) {
-            sendOperationLogToPartition(operationLog);
-        }
-
-    }
-
-    protected void sendOperationLogToPartition(int partitionNumber) {
-        OperationLog requestLog = TestData.operationLog();
-        operationLogKafkaTemplate.sendDefault(partitionNumber, requestLog.getPlanId(), requestLog);
-    }
-
-    protected void sendOperationLogToPartition(OperationLog operationLog) {
-        operationLogKafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog);
-    }
 
 }
