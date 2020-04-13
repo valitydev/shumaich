@@ -81,7 +81,9 @@ public class TopicConsumptionManager<K, V> {
         if (destroying.compareAndSet(false, true)) {
             log.info("Consumers shutting down...");
             executorService.shutdownNow();
-            executorService.awaitTermination(1, TimeUnit.MINUTES);
+            if (!executorService.awaitTermination(1, TimeUnit.MINUTES)) {
+                log.warn("Executor service awaitTermination timeout");
+            }
             log.info("Consumers shutted down...");
         }
     }
