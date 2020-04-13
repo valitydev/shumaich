@@ -50,7 +50,6 @@ public class PlanService {
             if (!HashUtils.hashesAreEqual(postingBatch.getPostings(), storedBatch.getBatchHash())) {
                 throw new HoldChecksumMismatchException();
             }
-            //todo we also can check IF all hold records are arrived
         }
     }
 

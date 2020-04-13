@@ -138,8 +138,7 @@ public class PostingGenerator {
     public static PostingPlan createPostingPlan(String planId, String providerAcc, String systemAcc, String merchantAcc) {
         PostingPlan postingPlan = new PostingPlan();
         postingPlan.setBatchList(List.of(
-                PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc, 1L),
-                PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc, 2L)
+                PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc, BATCH_ID)
         ));
         postingPlan.setId(planId);
         return postingPlan;

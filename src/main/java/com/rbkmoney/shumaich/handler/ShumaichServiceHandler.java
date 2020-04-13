@@ -19,18 +19,21 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
     @Override
     public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws InvalidPostingParams, TException {
+        log.info("Received hold operation {}, clock {}", postingPlanChange, clock);
         clockService.softCheckClockTimeline(clock);
         return service.registerHold(postingPlanChange);
     }
 
     @Override
     public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+        log.info("Received commit operation {}, clock {}", postingPlan, clock);
         clockService.hardCheckClockTimeline(clock);
         return service.registerFinalOp(postingPlan, OperationType.COMMIT);
     }
 
     @Override
     public Clock rollbackPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+        log.info("Received rollback operation {}, clock {}", postingPlan, clock);
         clockService.hardCheckClockTimeline(clock);
         return service.registerFinalOp(postingPlan, OperationType.ROLLBACK);
     }

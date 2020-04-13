@@ -1,5 +1,6 @@
 package com.rbkmoney.shumaich.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class PlanBatch {
         sequencesArrived.add(seq);
     }
 
+    @JsonIgnore
     public boolean isCompleted() {
         return sequencesArrived.size() == sequencesTotal;
     }
