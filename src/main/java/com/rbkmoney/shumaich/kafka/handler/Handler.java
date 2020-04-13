@@ -1,4 +1,4 @@
-package com.rbkmoney.shumaich.service;
+package com.rbkmoney.shumaich.kafka.handler;
 
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 

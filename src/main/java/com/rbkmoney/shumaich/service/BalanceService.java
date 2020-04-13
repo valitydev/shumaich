@@ -107,4 +107,12 @@ public class BalanceService {
     public boolean balanceExists(String accountId) {
         return balanceDao.get(accountId) != null;
     }
+
+    public void proceedFinalOp(OperationLog operationLog) {
+        proceedHold(operationLog);
+        //todo unwrap hold and do in transaction
+        if (planService.isFinished(operationLog)) {
+            planService.deletePlan(operationLog.getPlanId());
+        }
+    }
 }

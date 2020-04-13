@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.helpers;
 
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 

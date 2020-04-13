@@ -4,6 +4,8 @@ import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
+import com.rbkmoney.shumaich.utils.HashUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.PrimitiveIterator;
 import java.util.stream.LongStream;
 
 @Component
+@RequiredArgsConstructor
 public class PostingPlanOperationToOperationLogListConverter {
 
     public List<OperationLog> convert(PostingPlanOperation source) {
@@ -23,13 +26,14 @@ public class PostingPlanOperationToOperationLogListConverter {
         PrimitiveIterator.OfLong sequenceId = LongStream.range(0, totalOperations).iterator();
         for (PostingBatch postingBatch : source.getPostingBatches()) {
             for (Posting posting : postingBatch.getPostings()) {
+                long batchHash = HashUtils.computeHash(postingBatch.getPostings());
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                postingBatch, posting, true)
+                                postingBatch, posting, batchHash, true)
                 );
                 operationLogs.add(
                         createOperationLog(source, totalOperations, sequenceId.next(),
-                                postingBatch, posting, false)
+                                postingBatch, posting, batchHash, false)
                 );
             }
         }
@@ -41,6 +45,7 @@ public class PostingPlanOperationToOperationLogListConverter {
                                             Long sequenceId,
                                             PostingBatch postingBatch,
                                             Posting posting,
+                                            long batchHash,
                                             boolean first) {
         return OperationLog.builder()
                 .planId(source.getPlanId())
@@ -56,6 +61,7 @@ public class PostingPlanOperationToOperationLogListConverter {
                 .description(posting.getDescription())
                 .sequence(sequenceId)
                 .total(totalOperations)
+                .batchHash(batchHash)
                 .build();
     }
 }

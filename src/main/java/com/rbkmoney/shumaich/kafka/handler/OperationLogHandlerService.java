@@ -1,7 +1,8 @@
-package com.rbkmoney.shumaich.service;
+package com.rbkmoney.shumaich.kafka.handler;
 
 
 import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.shumaich.service.BalanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -43,6 +44,7 @@ public class OperationLogHandlerService implements Handler<OperationLog> {
     }
 
     private void processFinalOperation(OperationLog operationLog) {
-        //todo
+        balanceService.proceedFinalOp(operationLog);
     }
+
 }

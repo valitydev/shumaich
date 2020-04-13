@@ -7,6 +7,7 @@ import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.IdempotentTestHandler;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Test;

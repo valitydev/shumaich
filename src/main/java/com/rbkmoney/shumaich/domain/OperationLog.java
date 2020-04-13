@@ -19,4 +19,5 @@ public class OperationLog {
     private String description;
     private Long sequence;
     private Long total;
+    private Long batchHash;
 }

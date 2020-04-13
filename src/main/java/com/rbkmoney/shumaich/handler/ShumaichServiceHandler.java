@@ -2,7 +2,7 @@ package com.rbkmoney.shumaich.handler;
 
 import com.rbkmoney.damsel.shumpune.*;
 import com.rbkmoney.shumaich.service.ClockService;
-import com.rbkmoney.shumaich.service.RequestTransformationService;
+import com.rbkmoney.shumaich.service.RequestRegistrationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
     private final ClockService clockService;
-    private final RequestTransformationService service;
+    private final RequestRegistrationService service;
 
     @Override
     public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws InvalidPostingParams, TException {
@@ -25,7 +25,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     @Override
     public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
         clockService.hardCheckClockTimeline(clock);
-        return null;
+        return service.registerCommit(postingPlan);
     }
 
     @Override

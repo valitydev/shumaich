@@ -2,9 +2,9 @@ package com.rbkmoney.shumaich.config;
 
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
-import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
