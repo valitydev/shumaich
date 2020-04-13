@@ -44,7 +44,7 @@ public class ValidationService {
         }
     }
 
-    public void validateCommit(PostingPlanOperation postingPlanOperation) {
+    public void validateFinalOp(PostingPlanOperation postingPlanOperation) {
         planService.checkHoldAndChecksumAreMatch(postingPlanOperation);
     }
 }

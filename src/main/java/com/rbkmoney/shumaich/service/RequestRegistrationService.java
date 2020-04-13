@@ -31,18 +31,13 @@ public class RequestRegistrationService {
         return writeToTopic(postingPlanOperation);
     }
 
-    public Clock registerCommit(PostingPlan postingPlan) {
+    public Clock registerFinalOp(PostingPlan postingPlan, OperationType operationType) {
         validationService.validatePostings(postingPlan);
-        PostingPlanOperation postingPlanOperation = finalOpConverter.convert(postingPlan, OperationType.COMMIT);
-        validationService.validateCommit(postingPlanOperation);
+        PostingPlanOperation postingPlanOperation = finalOpConverter.convert(postingPlan, operationType);
+        validationService.validateFinalOp(postingPlanOperation);
 
         return writeToTopic(postingPlanOperation);
     }
-
-//
-//    public Clock registerRollback(PostingPlan postingPlan) {
-//
-//    }
 
     private Clock writeToTopic(PostingPlanOperation postingPlanOperation) {
         List<RecordMetadata> partitionsMetadata = writerService.write(postingPlanOperation);

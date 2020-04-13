@@ -21,12 +21,13 @@ public class HashUtils {
     }
 
     private static List<String> convertPostings(List<Posting> postings) {
-        postings.sort(Comparator.comparing(Posting::getAmount)
+        ArrayList<Posting> postingsCopy = new ArrayList<>(postings);
+        postingsCopy.sort(Comparator.comparing(Posting::getAmount)
                 .thenComparing((Posting posting) -> posting.getFromAccount().getId())
                 .thenComparing((Posting posting) -> posting.getToAccount().getId()));
 
         List<String> propsToHash = new ArrayList<>();
-        for (Posting posting : postings) {
+        for (Posting posting : postingsCopy) {
             propsToHash.add(posting.getAmount().toString());
             propsToHash.add(posting.getFromAccount().getId());
             propsToHash.add(posting.getToAccount().getId());
