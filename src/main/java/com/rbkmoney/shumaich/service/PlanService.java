@@ -36,7 +36,7 @@ public class PlanService {
         }
     }
 
-    public void checkHoldAndChecksumAreMatch(PostingPlanOperation postingPlanOperation) {
+    public void checkIfHoldAndChecksumMatch(PostingPlanOperation postingPlanOperation) {
         Plan plan = planDao.get(getKeyForPlan(postingPlanOperation.getPlanId(), OperationType.HOLD));
         if (plan == null) {
             throw new HoldNotExistException();
@@ -47,7 +47,7 @@ public class PlanService {
             if (storedBatch == null) {
                 throw new HoldNotExistException();
             }
-            if (!HashUtils.hashesAreEqual(postingBatch.getPostings(), storedBatch.getBatchHash())) {
+            if (!HashUtils.areHashesEqual(postingBatch.getPostings(), storedBatch.getBatchHash())) {
                 throw new HoldChecksumMismatchException();
             }
         }

@@ -51,7 +51,7 @@ import static org.mockito.Mockito.mock;
 public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
-    Handler<String> testLogHandler;
+    Handler<String, String> testLogHandler;
 
     @Autowired
     KafkaTemplate<String, String> testLogKafkaTemplate;
@@ -164,7 +164,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
 
         @Bean
         @Primary
-        Handler<String> testLogHandler() {
+        Handler<String, String> testLogHandler() {
             return mock(Handler.class);
         }
 
@@ -186,7 +186,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         @DependsOn(value = "rocksDB")
         public TopicConsumptionManager<String, String> testLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                       KafkaOffsetService kafkaOffsetService,
-                                                                                      Handler<String> handler) throws ExecutionException, InterruptedException {
+                                                                                      Handler<String, String> handler) throws ExecutionException, InterruptedException {
             Map<String, Object> consumerProps = new HashMap<>();
             consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getEmbeddedKafka().getBrokersAsString());
             consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);

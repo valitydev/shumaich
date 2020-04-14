@@ -103,7 +103,7 @@ public class KafkaConfiguration {
     @DependsOn("rocksDB")
     public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetService kafkaOffsetService,
-                                                                                             Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
+                                                                                             Handler<String, OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);

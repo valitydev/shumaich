@@ -27,7 +27,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     private final Map<String, Object> consumerProps;
     private final List<TopicPartition> assignedPartitions;
     private final KafkaOffsetService kafkaOffsetService;
-    private final Handler<V> handler;
+    private final Handler<K, V> handler;
     private final Long pollingTimeout;
 
     public static <K, V> SimpleTopicConsumer<K, V> of(SimpleTopicConsumer<K, V> otherConsumer) {

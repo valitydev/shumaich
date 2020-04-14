@@ -58,7 +58,7 @@ public class PlanDao extends RocksDbDao {
             rocksDB.delete(columnFamilyHandle, planId.getBytes());
         } catch (RocksDBException e) {
             log.error("Can't delete plan with id: {}", planId, e);
-            throw new DaoException("Can't save plan with id: " + planId, e);
+            throw new DaoException("Can't delete plan with id: " + planId, e);
         }
     }
 }

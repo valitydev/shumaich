@@ -105,10 +105,10 @@ public abstract class IntegrationTestBase {
         Assert.assertTrue(kafkaOffsets.toString(), kafkaOffsets.stream().anyMatch(kafkaOffset -> kafkaOffset.getOffset().equals(expectedOffset)));
     }
 
-    protected <T> void registerReceivedMessages(int partitionNumber, AtomicInteger receivedRecordsSize, Handler<T> handler) {
+    protected <K, T> void registerReceivedMessages(int partitionNumber, AtomicInteger receivedRecordsSize, Handler<K, T> handler) {
         Mockito.doAnswer(invocation -> {
             // As we can't clean records from topics in test - we just parallelize tests by partitions
-            ConsumerRecords<?, T> consumerRecords = (ConsumerRecords<?, T>) invocation.getArguments()[0];
+            ConsumerRecords<K, T> consumerRecords = (ConsumerRecords<K, T>) invocation.getArguments()[0];
             Optional<TopicPartition> wantedPartition = consumerRecords.partitions().stream()
                     .filter(topicPartition -> topicPartition.partition() == partitionNumber)
                     .findFirst();

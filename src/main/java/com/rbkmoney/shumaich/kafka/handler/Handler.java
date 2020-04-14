@@ -2,7 +2,7 @@ package com.rbkmoney.shumaich.kafka.handler;
 
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
-public interface Handler<V> {
+public interface Handler<K, V> {
 
-    void handle(ConsumerRecords<?, V> records);
+    void handle(ConsumerRecords<K, V> records);
 }

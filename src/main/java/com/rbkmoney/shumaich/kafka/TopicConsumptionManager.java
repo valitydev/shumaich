@@ -33,7 +33,7 @@ public class TopicConsumptionManager<K, V> {
                                    Integer partitionsPerThread,
                                    Map<String, Object> consumerProps,
                                    KafkaOffsetService kafkaOffsetService,
-                                   Handler<V> handler,
+                                   Handler<K, V> handler,
                                    Long pollingTimeout) {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
         int consumersAmount = (int) Math.ceil(topicPartitions.size() / (double) partitionsPerThread);

@@ -1,18 +1,16 @@
 package com.rbkmoney.shumaich.handler;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumpune.*;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.exception.*;
+import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.woody.api.flow.error.WRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.Assert;
@@ -127,7 +125,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = NotReadyException.class)
+    @Test(expected = NotReady.class)
     public void holdWithClockTooEarly() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         Clock clock = handler.hold(plan1, null);
@@ -139,21 +137,21 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(plan1, clock);
     }
 
-    @Test(expected = CurrencyInPostingsNotConsistentException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentCurrency() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).setCurrencySymCode("USD");
         handler.hold(plan1, null);
     }
 
-    @Test(expected = AccountsInPostingsAreEqualException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsEqualAccs() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).setFromAccount(plan1.getBatch().getPostings().get(0).getToAccount());
         handler.hold(plan1, null);
     }
 
-    @Test(expected = AccountsHaveDifferentCurrenciesException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentAccountCurrencies() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).getFromAccount().setCurrencySymCode("USD");
@@ -176,7 +174,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = HoldNotExistException.class)
+    @Test(expected = WRuntimeException.class)
     public void commitIdempotency() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
@@ -210,7 +208,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = HoldNotExistException.class)
+    @Test(expected = WRuntimeException.class)
     public void rollbackIdempotency() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
@@ -229,7 +227,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
     }
 
-    @Test(expected = HoldChecksumMismatchException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void finalOperationChecksumMismatch() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
@@ -242,7 +240,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, holdClock), notNullValue());
     }
 
-    @Test(expected = HoldNotExistException.class)
+    @Test(expected = WRuntimeException.class)
     public void finalOperationHoldNotExist() throws TException {
         Clock fakeClock = handler.hold(postingPlanChange(), null);
 
@@ -254,7 +252,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
     }
 
-    @Test(expected = HoldNotExistException.class)
+    @Test(expected = WRuntimeException.class)
     public void finalOperationBatchNotExist() throws TException {
         Clock fakeClock = handler.hold(postingPlanChange(), null);
 

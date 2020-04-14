@@ -95,7 +95,7 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
 
         @Bean
         @Primary
-        Handler<OperationLog> operationLogHandler() {
+        Handler<String, OperationLog> operationLogHandler() {
             return new IdempotentTestHandler();
         }
 

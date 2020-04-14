@@ -16,7 +16,7 @@ public class HashUtils {
         return MurmurHash2.hash64(String.join("_", convertPostings(postings)));
     }
 
-    public static boolean hashesAreEqual(List<Posting> postings, Long batchHash) {
+    public static boolean areHashesEqual(List<Posting> postings, Long batchHash) {
         return computeHash(postings) == batchHash;
     }
 
