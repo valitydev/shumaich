@@ -109,8 +109,9 @@ public class BalanceService {
     }
 
     public void proceedFinalOp(OperationLog operationLog) {
+        //todo reuse hold method?
         proceedHold(operationLog);
-        //todo unwrap hold and do in transaction
+        //todo do in transaction?
         if (planService.isFinished(operationLog)) {
             planService.deletePlan(operationLog.getPlanId());
         }
