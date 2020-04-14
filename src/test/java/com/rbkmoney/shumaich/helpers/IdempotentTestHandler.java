@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.helpers;
 
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 
@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.Set;
 
 
-public class IdempotentTestHandler implements Handler<OperationLog> {
+public class IdempotentTestHandler implements Handler<String, OperationLog> {
 
     Map<String, Set<Long>> receivedRecords = new HashMap<>();
 
     @Override
-    public void handle(ConsumerRecords<?, OperationLog> records) {
+    public void handle(ConsumerRecords<String, OperationLog> records) {
         for (ConsumerRecord<?, OperationLog> record : records) {
             if (record.value() == null)
                 continue;

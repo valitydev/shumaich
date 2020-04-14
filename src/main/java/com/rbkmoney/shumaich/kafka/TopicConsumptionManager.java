@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.kafka;
 
-import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.TopicDescription;
@@ -33,7 +33,7 @@ public class TopicConsumptionManager<K, V> {
                                    Integer partitionsPerThread,
                                    Map<String, Object> consumerProps,
                                    KafkaOffsetService kafkaOffsetService,
-                                   Handler<V> handler,
+                                   Handler<K, V> handler,
                                    Long pollingTimeout) {
         List<TopicPartitionInfo> topicPartitions = topicDescription.partitions();
         int consumersAmount = (int) Math.ceil(topicPartitions.size() / (double) partitionsPerThread);

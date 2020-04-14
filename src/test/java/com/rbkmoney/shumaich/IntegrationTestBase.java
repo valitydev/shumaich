@@ -1,12 +1,9 @@
 package com.rbkmoney.shumaich;
 
 
-import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
-import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +22,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -109,10 +105,10 @@ public abstract class IntegrationTestBase {
         Assert.assertTrue(kafkaOffsets.toString(), kafkaOffsets.stream().anyMatch(kafkaOffset -> kafkaOffset.getOffset().equals(expectedOffset)));
     }
 
-    protected <T> void registerReceivedMessages(int partitionNumber, AtomicInteger receivedRecordsSize, Handler<T> handler) {
+    protected <K, T> void registerReceivedMessages(int partitionNumber, AtomicInteger receivedRecordsSize, Handler<K, T> handler) {
         Mockito.doAnswer(invocation -> {
             // As we can't clean records from topics in test - we just parallelize tests by partitions
-            ConsumerRecords<?, T> consumerRecords = (ConsumerRecords<?, T>) invocation.getArguments()[0];
+            ConsumerRecords<K, T> consumerRecords = (ConsumerRecords<K, T>) invocation.getArguments()[0];
             Optional<TopicPartition> wantedPartition = consumerRecords.partitions().stream()
                     .filter(topicPartition -> topicPartition.partition() == partitionNumber)
                     .findFirst();

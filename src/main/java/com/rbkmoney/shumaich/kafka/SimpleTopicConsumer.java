@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.kafka;
 
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.service.Handler;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ public class SimpleTopicConsumer<K, V> implements Runnable {
     private final Map<String, Object> consumerProps;
     private final List<TopicPartition> assignedPartitions;
     private final KafkaOffsetService kafkaOffsetService;
-    private final Handler<V> handler;
+    private final Handler<K, V> handler;
     private final Long pollingTimeout;
 
     public static <K, V> SimpleTopicConsumer<K, V> of(SimpleTopicConsumer<K, V> otherConsumer) {

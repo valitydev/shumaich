@@ -1,19 +1,16 @@
 package com.rbkmoney.shumaich.handler;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumpune.*;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.exception.AccountsHaveDifferentCurrenciesException;
-import com.rbkmoney.shumaich.exception.AccountsInPostingsAreEqualException;
-import com.rbkmoney.shumaich.exception.CurrencyInPostingsNotConsistentException;
 import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.woody.api.flow.error.WRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.Assert;
@@ -56,6 +53,12 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         rocksDB.delete(planDao.getColumnFamilyHandle(), (PLAN_ID + "_HOLD").getBytes());
         rocksDB.delete(planDao.getColumnFamilyHandle(), "plan1_HOLD".getBytes());
         rocksDB.delete(planDao.getColumnFamilyHandle(), "plan2_HOLD".getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), (PLAN_ID + "_COMMIT").getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan1_COMMIT".getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan2_COMMIT".getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), (PLAN_ID + "_ROLLBACK").getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan1_ROLLBACK".getBytes());
+        rocksDB.delete(planDao.getColumnFamilyHandle(), "plan2_ROLLBACK".getBytes());
         rocksDB.delete(balanceDao.getColumnFamilyHandle(), MERCHANT_ACC.getBytes());
         rocksDB.delete(balanceDao.getColumnFamilyHandle(), SYSTEM_ACC.getBytes());
         rocksDB.delete(balanceDao.getColumnFamilyHandle(), PROVIDER_ACC.getBytes());
@@ -122,7 +125,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = NotReadyException.class)
+    @Test(expected = NotReady.class)
     public void holdWithClockTooEarly() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         Clock clock = handler.hold(plan1, null);
@@ -134,25 +137,131 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(plan1, clock);
     }
 
-    @Test(expected = CurrencyInPostingsNotConsistentException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentCurrency() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).setCurrencySymCode("USD");
         handler.hold(plan1, null);
     }
 
-    @Test(expected = AccountsInPostingsAreEqualException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsEqualAccs() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).setFromAccount(plan1.getBatch().getPostings().get(0).getToAccount());
         handler.hold(plan1, null);
     }
 
-    @Test(expected = AccountsHaveDifferentCurrenciesException.class)
+    @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentAccountCurrencies() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         plan1.getBatch().getPostings().get(0).getFromAccount().setCurrencySymCode("USD");
         handler.hold(plan1, null);
+    }
+
+    @Test
+    public void commitSuccess() throws TException {
+        Clock holdClock = handler.hold(postingPlanChange(), null);
+
+        await().until(() -> handler.commitPlan(TestData.postingPlan(), holdClock), notNullValue());
+
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(97, balance.getAmount().intValue());
+            Assert.assertEquals(97, balance.getMinAmount().intValue());
+            Assert.assertEquals(97, balance.getMaxAmount().intValue());
+        });
+    }
+
+    @Test(expected = WRuntimeException.class)
+    public void commitIdempotency() throws TException {
+        Clock holdClock = handler.hold(postingPlanChange(), null);
+
+        //wait for hold to be consumed
+        await().until(() -> handler.commitPlan(TestData.postingPlan(), holdClock), notNullValue());
+        
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(97, balance.getAmount().intValue());
+            Assert.assertEquals(97, balance.getMinAmount().intValue());
+            Assert.assertEquals(97, balance.getMaxAmount().intValue());
+        });
+        
+        handler.commitPlan(TestData.postingPlan(), holdClock);
+        
+    }
+    @Test
+    public void rollbackSuccess() throws TException {
+        Clock holdClock = handler.hold(postingPlanChange(), null);
+
+        await().until(() -> handler.rollbackPlan(TestData.postingPlan(), holdClock), notNullValue());
+
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(0, balance.getAmount().intValue());
+            Assert.assertEquals(0, balance.getMinAmount().intValue());
+            Assert.assertEquals(0, balance.getMaxAmount().intValue());
+        });
+    }
+
+    @Test(expected = WRuntimeException.class)
+    public void rollbackIdempotency() throws TException {
+        Clock holdClock = handler.hold(postingPlanChange(), null);
+
+        //wait for hold to be consumed
+        await().until(() -> handler.rollbackPlan(TestData.postingPlan(), holdClock), notNullValue());
+
+        await().untilAsserted(() -> {
+            Balance balance = balanceDao.get(MERCHANT_ACC);
+
+            Assert.assertNotNull(balance);
+            Assert.assertEquals(0, balance.getAmount().intValue());
+            Assert.assertEquals(0, balance.getMinAmount().intValue());
+            Assert.assertEquals(0, balance.getMaxAmount().intValue());
+        });
+
+        handler.rollbackPlan(TestData.postingPlan(), holdClock);
+    }
+
+    @Test(expected = InvalidPostingParams.class)
+    public void finalOperationChecksumMismatch() throws TException {
+        Clock holdClock = handler.hold(postingPlanChange(), null);
+
+        PostingPlan postingPlan = postingPlan();
+        Posting posting = postingPlan.getBatchList().get(0).getPostings().get(0);
+        posting.setAmount(posting.getAmount() + 1);
+
+        //wait for hold to be consumed
+        await().ignoreExceptionsInstanceOf(NotReadyException.class)
+                .until(() -> handler.rollbackPlan(postingPlan, holdClock), notNullValue());
+    }
+
+    @Test(expected = WRuntimeException.class)
+    public void finalOperationHoldNotExist() throws TException {
+        Clock fakeClock = handler.hold(postingPlanChange(), null);
+
+        PostingPlan postingPlan = postingPlan();
+        postingPlan.setId("kekPlan");
+
+        //wait for hold to be consumed
+        await().ignoreExceptionsInstanceOf(NotReadyException.class)
+                .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
+    }
+
+    @Test(expected = WRuntimeException.class)
+    public void finalOperationBatchNotExist() throws TException {
+        Clock fakeClock = handler.hold(postingPlanChange(), null);
+
+        PostingPlan postingPlan = postingPlan();
+        postingPlan.getBatchList().get(0).setId(999L);
+
+        //wait for hold to be consumed
+        await().ignoreExceptionsInstanceOf(NotReadyException.class)
+                .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
     }
 
 }

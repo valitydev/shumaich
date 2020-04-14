@@ -2,9 +2,9 @@ package com.rbkmoney.shumaich.config;
 
 import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
-import com.rbkmoney.shumaich.service.Handler;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -103,7 +103,7 @@ public class KafkaConfiguration {
     @DependsOn("rocksDB")
     public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
                                                                                              KafkaOffsetService kafkaOffsetService,
-                                                                                             Handler<OperationLog> handler) throws ExecutionException, InterruptedException {
+                                                                                             Handler<String, OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
