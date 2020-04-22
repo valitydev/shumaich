@@ -10,7 +10,6 @@ import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
-import com.rbkmoney.woody.api.flow.error.WRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.Assert;
@@ -174,13 +173,13 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = WRuntimeException.class)
+    @Test
     public void commitIdempotency() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
         //wait for hold to be consumed
         await().until(() -> handler.commitPlan(TestData.postingPlan(), holdClock), notNullValue());
-        
+
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
             Assert.assertNotNull(balance);
@@ -188,10 +187,12 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
             Assert.assertEquals(97, balance.getMinAmount().intValue());
             Assert.assertEquals(97, balance.getMaxAmount().intValue());
         });
-        
+
         handler.commitPlan(TestData.postingPlan(), holdClock);
-        
+
+        //todo check kafka having this
     }
+
     @Test
     public void rollbackSuccess() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
@@ -208,7 +209,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
     }
 
-    @Test(expected = WRuntimeException.class)
+    @Test
     public void rollbackIdempotency() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
@@ -225,6 +226,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         });
 
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
+
+        //todo check kafka having this
     }
 
     @Test(expected = InvalidPostingParams.class)
@@ -240,7 +243,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, holdClock), notNullValue());
     }
 
-    @Test(expected = WRuntimeException.class)
+    @Test
     public void finalOperationHoldNotExist() throws TException {
         Clock fakeClock = handler.hold(postingPlanChange(), null);
 
@@ -250,9 +253,11 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         //wait for hold to be consumed
         await().ignoreExceptionsInstanceOf(NotReadyException.class)
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
+
+        //todo check kafka having this
     }
 
-    @Test(expected = WRuntimeException.class)
+    @Test
     public void finalOperationBatchNotExist() throws TException {
         Clock fakeClock = handler.hold(postingPlanChange(), null);
 
@@ -262,6 +267,54 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         //wait for hold to be consumed
         await().ignoreExceptionsInstanceOf(NotReadyException.class)
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
+
+        //todo check kafka having this
+    }
+
+    @Test
+    public void findAccountById() throws TException {
+        handler.hold(postingPlanChange(), null);
+
+        await().untilAsserted(() -> {
+            final Account account = handler.getAccountByID(SYSTEM_ACC, null);
+
+            Assert.assertEquals(SYSTEM_ACC, account.getId());
+            Assert.assertEquals("RUB", account.getCurrencySymCode());
+        });
+    }
+
+    @Test(expected = AccountNotFound.class)
+    public void accountNotFound() throws TException {
+        handler.getAccountByID(SYSTEM_ACC, null);
+    }
+
+    @Test(expected = NotReady.class)
+    public void accountNotReady() throws TException {
+        final Clock clock = handler.hold(postingPlanChange(), null);
+        handler.getAccountByID(SYSTEM_ACC, TestUtils.moveClockFurther(clock, Map.of(3L, 10L)));
+    }
+
+    @Test
+    public void balanceById() throws TException {
+        handler.hold(postingPlanChange(), null);
+
+        await().untilAsserted(() -> {
+            final com.rbkmoney.damsel.shumpune.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
+
+            Assert.assertEquals(MERCHANT_ACC, balanceByID.getId());
+            Assert.assertEquals(-3, balanceByID.min_available_amount);
+        });
+    }
+
+    @Test(expected = AccountNotFound.class)
+    public void balanceNotFound() throws TException {
+        handler.getBalanceByID(MERCHANT_ACC, null);
+    }
+
+    @Test(expected = NotReady.class)
+    public void balanceNotReady() throws TException {
+        final Clock clock = handler.hold(postingPlanChange(), null);
+        handler.getBalanceByID(MERCHANT_ACC, TestUtils.moveClockFurther(clock, Map.of(3L, 10L)));
     }
 
 }

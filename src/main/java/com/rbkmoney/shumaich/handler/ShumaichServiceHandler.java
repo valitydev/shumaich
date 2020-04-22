@@ -7,8 +7,6 @@ import com.rbkmoney.shumaich.service.BalanceService;
 import com.rbkmoney.shumaich.service.ClockService;
 import com.rbkmoney.shumaich.service.RequestRegistrationService;
 import com.rbkmoney.shumaich.utils.MdcUtils;
-import com.rbkmoney.woody.api.flow.error.WErrorDefinition;
-import com.rbkmoney.woody.api.flow.error.WRuntimeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
@@ -19,12 +17,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
+    public static final String SOME_ERROR_HAPPENED = "Some error happened";
+    public static final String POSTINGS_ARE_INVALID = "Postings are invalid!";
+    
     private final ClockService clockService;
     private final RequestRegistrationService service;
     private final BalanceService balanceService;
 
     @Override
-    public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws InvalidPostingParams, TException {
+    public Clock hold(PostingPlanChange postingPlanChange, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(postingPlanChange);
             log.info("Received hold operation");
@@ -36,10 +37,10 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
         } catch (CurrencyInPostingsNotConsistentException
                 | AccountsInPostingsAreEqualException
                 | AccountsHaveDifferentCurrenciesException e) {
-            log.warn("Postings are invalid!", e);
+            log.warn(POSTINGS_ARE_INVALID, e);
             throw new InvalidPostingParams();
         } catch (Exception e) {
-            log.error("Some error happened", e);
+            log.error(SOME_ERROR_HAPPENED, e);
             throw new TException(e);
         } finally {
             MdcUtils.clearMdc();
@@ -47,7 +48,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     }
 
     @Override
-    public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+    public Clock commitPlan(PostingPlan postingPlan, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(postingPlan);
             log.info("Received commit operation");
@@ -60,13 +61,13 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
                 | AccountsInPostingsAreEqualException
                 | AccountsHaveDifferentCurrenciesException
                 | HoldChecksumMismatchException e) {
-            log.warn("Postings are invalid!", e);
+            log.warn(POSTINGS_ARE_INVALID, e);
             throw new InvalidPostingParams();
         } catch (HoldNotExistException e) {
             log.info("Hold not exist, maybe it is already cleared", e);
-            throw new WRuntimeException("Hold can be already cleared", new WErrorDefinition()); //todo discuss with erlang team
+            return clock;
         } catch (Exception e) {
-            log.error("Some error happened", e);
+            log.error(SOME_ERROR_HAPPENED, e);
             throw new TException(e);
         } finally {
             MdcUtils.clearMdc();
@@ -75,7 +76,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     }
 
     @Override
-    public Clock rollbackPlan(PostingPlan postingPlan, Clock clock) throws InvalidPostingParams, NotReady, TException {
+    public Clock rollbackPlan(PostingPlan postingPlan, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(postingPlan);
             log.info("Received rollback operation");
@@ -88,13 +89,13 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
                 | AccountsInPostingsAreEqualException
                 | AccountsHaveDifferentCurrenciesException
                 | HoldChecksumMismatchException e) {
-            log.warn("Postings are invalid!", e);
+            log.warn(POSTINGS_ARE_INVALID, e);
             throw new InvalidPostingParams();
         } catch (HoldNotExistException e) {
             log.info("Hold not exist, maybe it is already cleared", e);
-            throw new WRuntimeException("Hold can be already cleared", new WErrorDefinition()); //todo discuss with erlang team
+            return clock;
         } catch (Exception e) {
-            log.error("Some error happened", e);
+            log.error(SOME_ERROR_HAPPENED, e);
             throw new TException(e);
         } finally {
             MdcUtils.clearMdc();
@@ -103,28 +104,40 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     }
 
     @Override
-    public Balance getBalanceByID(String accountId, Clock clock) throws AccountNotFound, NotReady, TException {
+    public Balance getBalanceByID(String accountId, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(accountId);
-            clockService.hardCheckClockTimeline(clock);
-            return null;
-
+            clockService.softCheckClockTimeline(clock);
+            return balanceService.getBalance(accountId).setClock(clock);
+        } catch (NotReadyException e) {
+            log.info("Hold is not read yet", e);
+            throw new NotReady();
+        } catch (AccountNotFoundException e) {
+            log.info("Account not found", e);
+            throw new AccountNotFound(accountId);
         } catch (Exception e) {
-            return null;
+            log.error(SOME_ERROR_HAPPENED, e);
+            throw new TException(e);
         } finally {
             MdcUtils.clearMdc();
         }
     }
 
     @Override
-    public Account getAccountByID(String accountId, Clock clock) throws AccountNotFound, NotReady, TException {
+    public Account getAccountByID(String accountId, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(accountId);
             clockService.softCheckClockTimeline(clock);
-            return null;
-
+            return balanceService.getAccount(accountId);
+        } catch (NotReadyException e) {
+            log.info("Hold is not read yet", e);
+            throw new NotReady();
+        } catch (AccountNotFoundException e) {
+            log.info("Account not found", e);
+            throw new AccountNotFound(accountId);
         } catch (Exception e) {
-            return null;
+            log.error(SOME_ERROR_HAPPENED, e);
+            throw new TException(e);
         } finally {
             MdcUtils.clearMdc();
         }

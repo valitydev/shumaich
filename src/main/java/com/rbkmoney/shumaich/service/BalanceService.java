@@ -4,6 +4,7 @@ import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.shumaich.exception.AccountNotFoundException;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,15 +34,25 @@ public class BalanceService {
         );
     }
 
-    //todo maybe we should do batch processing
     public void proceedHold(OperationLog operationLog) {
-        if (planService.operationLogExists(operationLog)) { //todo, do it inside transaction?
+        proceedOperation(operationLog);
+    }
+
+    public void proceedFinalOp(OperationLog operationLog) {
+        proceedOperation(operationLog);
+        if (planService.isFinished(operationLog)) {
+            planService.deletePlan(operationLog.getPlanId());
+        }
+    }
+
+    public void proceedOperation(OperationLog operationLog) {
+        if (planService.operationLogExists(operationLog)) {
             return;
         }
         WriteOptions writeOptions = new WriteOptions().setSync(true); //NOSONAR write options are actually closed
         Transaction transaction = rocksDB.beginTransaction(writeOptions);
         try {
-            formHoldTransaction(operationLog, transaction);
+            formTransaction(operationLog, transaction);
             transaction.commit();
         } catch (RocksDBException e) {
             log.error("Error in proceedHold, operationLog: {}", operationLog);
@@ -62,7 +73,7 @@ public class BalanceService {
         }
     }
 
-    private void formHoldTransaction(OperationLog operationLog, Transaction transaction) {
+    private void formTransaction(OperationLog operationLog, Transaction transaction) {
         Balance balanceForUpdate = balanceDao.getForUpdate(transaction, getKey(operationLog.getAccount()));
         Balance balance = calculateBalance(balanceForUpdate, operationLog);
         balanceDao.putInTransaction(transaction, balance);
@@ -108,12 +119,20 @@ public class BalanceService {
         return balanceDao.get(accountId) != null;
     }
 
-    public void proceedFinalOp(OperationLog operationLog) {
-        //todo reuse hold method?
-        proceedHold(operationLog);
-        //todo do in transaction?
-        if (planService.isFinished(operationLog)) {
-            planService.deletePlan(operationLog.getPlanId());
+    public com.rbkmoney.damsel.shumpune.Balance getBalance(String accountId) {
+        final Balance balance = balanceDao.get(accountId);
+        if (balance == null) {
+            throw new AccountNotFoundException();
         }
+        return new com.rbkmoney.damsel.shumpune.Balance(accountId,
+                balance.getAmount(), balance.getMaxAmount(), balance.getMinAmount(), null);
+    }
+
+    public com.rbkmoney.damsel.shumpune.Account getAccount(String accountId) {
+        final Balance balance = balanceDao.get(accountId);
+        if (balance == null) {
+            throw new AccountNotFoundException();
+        }
+        return new com.rbkmoney.damsel.shumpune.Account(accountId, balance.getCurrencySymbolicCode());
     }
 }

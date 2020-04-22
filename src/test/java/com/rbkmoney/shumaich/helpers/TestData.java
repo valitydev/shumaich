@@ -7,7 +7,6 @@ import com.rbkmoney.damsel.shumpune.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.PostingBatchDamselToPostingBatchConverter;
 import com.rbkmoney.shumaich.converter.PostingDamselToPostingConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.apache.kafka.common.TopicPartition;
@@ -51,16 +50,6 @@ public class TestData {
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
                         ).stream().map(converter::convert).collect(Collectors.toList())
                 )
-                .build();
-    }
-
-    public static OperationLog operationLog() {
-        return OperationLog.builder()
-                .build();
-    }
-
-    public static OperationLog operationLog(String planId) {
-        return OperationLog.builder()
                 .build();
     }
 
