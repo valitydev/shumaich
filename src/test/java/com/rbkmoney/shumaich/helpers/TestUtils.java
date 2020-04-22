@@ -1,12 +1,12 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.damsel.shumpune.Clock;
+import com.rbkmoney.damsel.shumpune.PostingPlan;
+import com.rbkmoney.damsel.shumpune.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.service.ClockService;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
-import org.apache.kafka.clients.producer.RecordMetadata;
 
 import java.util.List;
 import java.util.Map;
@@ -42,6 +42,10 @@ public class TestUtils {
                                 new com.rbkmoney.shumaich.domain.Clock.PartitionOffsetPair(2, 2L))
                 )
         );
+    }
+
+    public static PostingPlan postingPlanFromPostingPlanChange(PostingPlanChange postingPlanChange) {
+        return new PostingPlan(postingPlanChange.getId(), List.of(postingPlanChange.getBatch()));
     }
 
 }
