@@ -3,7 +3,28 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <root level="warn">
+<!-- config for reading MDC in tests -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>myApp.log</file>
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <pattern>
+                    <pattern>
+                        { "time": "%date{yyy-MM-dd'T'HH:mm:ss.SSSXXX, UTC}" }
+                    </pattern>
+                </pattern>
+                <mdc/>
+                <threadName/>
+                <message/>
+                <version/>
+                <loggerName/>
+                <context/>
+            </providers>
+        </encoder>
+    </appender>
+
+    <root level="WARN">
+    <!-- Change "CONSOLE" to "FILE" if needed -->
         <appender-ref ref="CONSOLE"/>
     </root>
     <logger name="com.rbkmoney.woody" level="ALL"/>

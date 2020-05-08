@@ -17,5 +17,5 @@ public class PostingPlanOperation {
     private String planId;
     private List<PostingBatch> postingBatches;
     private OperationType operationType;
-
+    private ValidationStatus validationStatus;
 }

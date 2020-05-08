@@ -5,6 +5,7 @@ import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.utils.HashUtils;
+import com.rbkmoney.shumaich.utils.WoodyTraceUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -37,7 +38,22 @@ public class PostingPlanOperationToOperationLogListConverter {
                 );
             }
         }
+
+        addLogInfo(operationLogs);
+
         return operationLogs;
+    }
+
+    private void addLogInfo(List<OperationLog> operationLogs) {
+        final String parentId = WoodyTraceUtils.getParentId();
+        final String spanId = WoodyTraceUtils.getSpanId();
+        final String traceId = WoodyTraceUtils.getTraceId();
+
+        for (OperationLog operationLog : operationLogs) {
+            operationLog.setSpanId(spanId);
+            operationLog.setParentId(parentId);
+            operationLog.setTraceId(traceId);
+        }
     }
 
     private OperationLog createOperationLog(PostingPlanOperation source,
@@ -62,6 +78,7 @@ public class PostingPlanOperationToOperationLogListConverter {
                 .sequence(sequenceId)
                 .total(totalOperations)
                 .batchHash(batchHash)
+                .validationStatus(source.getValidationStatus())
                 .build();
     }
 }

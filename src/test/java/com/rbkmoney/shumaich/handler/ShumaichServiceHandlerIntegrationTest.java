@@ -10,26 +10,34 @@ import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
+import com.rbkmoney.shumaich.service.BalanceService;
+import com.rbkmoney.woody.thrift.impl.http.THSpawnClientBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 
 import static com.rbkmoney.shumaich.helpers.TestData.*;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
 
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
@@ -43,6 +51,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Autowired
     TransactionDB rocksDB;
+
+    @SpyBean
+    BalanceService balanceService;
 
     @Autowired
     TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
@@ -190,7 +201,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         handler.commitPlan(TestData.postingPlan(), holdClock);
 
-        //todo check kafka having this
+        //second commit shouldn't be proceeded
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
+        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(any());
     }
 
     @Test
@@ -227,7 +240,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
 
-        //todo check kafka having this
+        //second rollback shouldn't be proceeded
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
+        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(any());
     }
 
     @Test(expected = InvalidPostingParams.class)
@@ -254,7 +269,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().ignoreExceptionsInstanceOf(NotReadyException.class)
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
-        //todo check kafka having this
+        //second commit shouldn't be proceeded
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
+        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(any());
     }
 
     @Test
@@ -268,7 +285,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().ignoreExceptionsInstanceOf(NotReadyException.class)
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
-        //todo check kafka having this
+        //second commit shouldn't be proceeded
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
+        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(any());
     }
 
     @Test
@@ -317,4 +336,19 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.getBalanceByID(MERCHANT_ACC, TestUtils.moveClockFurther(clock, Map.of(3L, 10L)));
     }
 
+    @Test
+    public void woodyTest() throws TException {
+        final AccounterSrv.Iface shumaichIface = new THSpawnClientBuilder()
+                .withAddress(URI.create("http://localhost:8022/shumaich"))
+                .build(AccounterSrv.Iface.class);
+
+        shumaichIface.hold(postingPlanChange(), null);
+
+        await().untilAsserted(() -> {
+            final com.rbkmoney.damsel.shumpune.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
+
+            Assert.assertEquals(MERCHANT_ACC, balanceByID.getId());
+            Assert.assertEquals(-3, balanceByID.min_available_amount);
+        });
+    }
 }

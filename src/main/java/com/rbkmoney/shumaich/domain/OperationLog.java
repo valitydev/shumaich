@@ -20,4 +20,10 @@ public class OperationLog {
     private Long sequence;
     private Long total;
     private Long batchHash;
+    private ValidationStatus validationStatus;
+
+    //we need to save this to Kafka for better debugging
+    private String spanId;
+    private String parentId;
+    private String traceId;
 }
