@@ -33,8 +33,11 @@ import static com.rbkmoney.shumaich.helpers.TestData.*;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 
+/**
+ * Kafka doesn't clear data between tests, so u need unique ID's for test runs
+ */
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -186,10 +189,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void commitIdempotency() throws TException {
-        Clock holdClock = handler.hold(postingPlanChange(), null);
+        Clock holdClock = handler.hold(postingPlanChange("unique"), null);
 
         //wait for hold to be consumed
-        await().until(() -> handler.commitPlan(TestData.postingPlan(), holdClock), notNullValue());
+        await().until(() -> handler.commitPlan(TestData.postingPlan("unique"), holdClock), notNullValue());
 
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
@@ -202,8 +205,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.commitPlan(TestData.postingPlan(), holdClock);
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
-        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(any());
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
+        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
     }
 
     @Test
@@ -224,10 +227,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void rollbackIdempotency() throws TException {
-        Clock holdClock = handler.hold(postingPlanChange(), null);
+        Clock holdClock = handler.hold(postingPlanChange("12345"), null);
 
         //wait for hold to be consumed
-        await().until(() -> handler.rollbackPlan(TestData.postingPlan(), holdClock), notNullValue());
+        await().until(() -> handler.rollbackPlan(TestData.postingPlan("12345"), holdClock), notNullValue());
 
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
@@ -241,8 +244,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
 
         //second rollback shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
-        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(any());
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
+        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
     }
 
     @Test(expected = InvalidPostingParams.class)
@@ -260,7 +263,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Test
     public void finalOperationHoldNotExist() throws TException {
-        Clock fakeClock = handler.hold(postingPlanChange(), null);
+        Clock fakeClock = handler.hold(postingPlanChange("notKekPlan"), null);
 
         PostingPlan postingPlan = postingPlan();
         postingPlan.setId("kekPlan");
@@ -270,13 +273,13 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
-        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(any());
+        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("notKekPlan")));
+        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kekPlan")));
     }
 
     @Test
     public void finalOperationBatchNotExist() throws TException {
-        Clock fakeClock = handler.hold(postingPlanChange(), null);
+        Clock fakeClock = handler.hold(postingPlanChange("kektus"), null);
 
         PostingPlan postingPlan = postingPlan();
         postingPlan.getBatchList().get(0).setId(999L);
@@ -286,8 +289,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(any());
-        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(any());
+        Mockito.verify(balanceService, Mockito.times(6))
+                .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
+        Mockito.verify(balanceService, Mockito.times(0))
+                .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
     }
 
     @Test

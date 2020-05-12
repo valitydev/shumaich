@@ -68,8 +68,16 @@ public class TestData {
         return PostingGenerator.createPostingPlanChange(PLAN_ID, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
     }
 
+    public static PostingPlanChange postingPlanChange(String planId) {
+        return PostingGenerator.createPostingPlanChange(planId, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
+    }
+
     public static PostingPlan postingPlan() {
         return PostingGenerator.createPostingPlan(PLAN_ID, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
+    }
+
+    public static PostingPlan postingPlan(String planId) {
+        return PostingGenerator.createPostingPlan(planId, PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC);
     }
 
     public static Posting postingDamsel() {

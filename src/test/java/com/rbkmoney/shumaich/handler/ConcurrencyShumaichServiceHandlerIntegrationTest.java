@@ -17,6 +17,7 @@ import com.rbkmoney.shumaich.service.PlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,11 @@ import static org.junit.Assert.assertEquals;
 
 @Slf4j
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Ignore
 public class ConcurrencyShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
-    private static final int ITERATIONS = 2;
-    private static final int OPERATIONS = 100;
+    private static final int ITERATIONS = 10;
+    private static final int OPERATIONS = 15000;
     private static final int THREAD_NUM = 16;
     private static final long HOLD_AMOUNT = 100;
 
