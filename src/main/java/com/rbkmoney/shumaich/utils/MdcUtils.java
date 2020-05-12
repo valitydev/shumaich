@@ -3,6 +3,7 @@ package com.rbkmoney.shumaich.utils;
 import com.rbkmoney.damsel.shumpune.PostingPlan;
 import com.rbkmoney.damsel.shumpune.PostingPlanChange;
 import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.woody.api.MDCUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.slf4j.MDC;
@@ -12,12 +13,16 @@ import java.util.stream.Stream;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MdcUtils {
-    public static final String PLAN_ID = "planId";
-    public static final String ACCOUNT_ID = "accountId";
+    public static final String PLAN_ID = "plan_id";
+    public static final String ACCOUNT_ID = "account_id";
+
 
     public static void setMdc(OperationLog operationLog) {
         MDC.put(PLAN_ID, operationLog.getPlanId());
         MDC.put(ACCOUNT_ID, operationLog.getAccount().getId());
+        if (WoodyTraceUtils.getActiveSpan() != null) {
+            MDCUtils.putSpanData(WoodyTraceUtils.getActiveSpan());
+        }
     }
 
     public static void setMdc(PostingPlanChange postingPlanChange) {

@@ -11,14 +11,14 @@ import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.helpers.HellgateClientExecutor;
 import com.rbkmoney.shumaich.helpers.HoldPlansExecutor;
 import com.rbkmoney.shumaich.helpers.PostingGenerator;
+import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.service.BalanceService;
+import com.rbkmoney.shumaich.service.PlanService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -45,12 +45,19 @@ import static org.junit.Assert.assertEquals;
 @Ignore
 public class ConcurrencyShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
-    private static final int ATTEMPTS = 1000;
+    private static final int ITERATIONS = 10;
+    private static final int OPERATIONS = 15000;
     private static final int THREAD_NUM = 16;
     private static final long HOLD_AMOUNT = 100;
 
+    public static final String TEST_CASE_FIRST = "test1";
+    public static final String TEST_CASE_SECOND = "test2";
+
     @Autowired
     ShumaichServiceHandler serviceHandler;
+
+    @Autowired
+    TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
 
     @Autowired
     ApplicationContext applicationContext;
@@ -60,6 +67,9 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
 
     @Autowired
     BalanceService balanceService;
+
+    @Autowired
+    PlanService planService;
 
     @Autowired
     PlanDao planDao;
@@ -81,72 +91,87 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
 
     private ExecutorService executorService;
 
-    @Before
-    public void init() throws RocksDBException {
-        executorService = Executors.newFixedThreadPool(THREAD_NUM);
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), MERCHANT_ACC.getBytes());
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), SYSTEM_ACC.getBytes());
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), PROVIDER_ACC.getBytes());
-    }
-
     @Test
     public void concurrentHoldsConsistencyTest() throws InterruptedException {
-        List<Future<Map.Entry<String, Balance>>> futureList = new ArrayList<>();
+        for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+            executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
-        for (int i = 0; i < ATTEMPTS; i++) {
-            PostingPlanChange postingPlanChange = PostingGenerator.createPostingPlanChange(i + "test1", PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC, HOLD_AMOUNT);
-            futureList.add(executorService.submit(new HoldPlansExecutor(
-                    serviceHandler,
-                    postingPlanChange,
-                    retryTemplate)
-            ));
+            List<Future<Map.Entry<String, Balance>>> futureList = new ArrayList<>();
+
+            for (int operation = 0; operation < OPERATIONS; operation++) {
+                PostingPlanChange postingPlanChange = PostingGenerator.createPostingPlanChange(
+                        TEST_CASE_FIRST + "_iteration" + iteration + "_operation" + operation,
+                         TEST_CASE_FIRST + "_iteration" + iteration + PROVIDER_ACC,
+                         TEST_CASE_FIRST + "_iteration" + iteration + SYSTEM_ACC,
+                         TEST_CASE_FIRST + "_iteration" + iteration + MERCHANT_ACC,
+                        HOLD_AMOUNT);
+
+                futureList.add(executorService.submit(new HoldPlansExecutor(
+                        serviceHandler,
+                        postingPlanChange,
+                        retryTemplate,
+                        TEST_CASE_FIRST + "_iteration" + iteration + MERCHANT_ACC)
+                ));
+            }
+
+            executorService.shutdown();
+            executorService.awaitTermination(1, TimeUnit.HOURS);
+
+            Balance balance = futureList.stream()
+                    .map(Futures::getUnchecked)
+                    .map(Map.Entry::getValue)
+                    .min(Comparator.comparing(Balance::getMinAvailableAmount))
+                    .get();
+
+            long expectedBalance = -HOLD_AMOUNT * OPERATIONS;
+            assertEquals("Wrong balance after holds", expectedBalance, balance.getMinAvailableAmount());
         }
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
-
-        Balance balance = futureList.stream()
-                .map(Futures::getUnchecked)
-                .map(Map.Entry::getValue)
-                .min(Comparator.comparing(Balance::getMinAvailableAmount))
-                .get();
-
-        long expectedBalance = -HOLD_AMOUNT * ATTEMPTS;
-        assertEquals("Wrong balance after holds", expectedBalance, balance.getMinAvailableAmount());
     }
 
     @Test
     public void concurrentHellgateSimulationTest() throws InterruptedException {
-        List<Future<Map.Entry<String, Balance>>> futureList = new ArrayList<>();
+        for (int iteration = 0; iteration < ITERATIONS; iteration++) {
+            executorService = Executors.newFixedThreadPool(THREAD_NUM);
 
-        initBalance();
+            List<Future<Map.Entry<String, Balance>>> futureList = new ArrayList<>();
 
-        for (int i = 0; i < ATTEMPTS; i+=2) {
-            futureList.add(executorService.submit(new HellgateClientExecutor(
-                    serviceHandler,
-                    PostingGenerator.createPostingPlanChangeTwoAccs(i + "test2", SYSTEM_ACC, MERCHANT_ACC, HOLD_AMOUNT),
-                    retryTemplate,
-                    SYSTEM_ACC)
-            ));
-            futureList.add(executorService.submit(new HellgateClientExecutor(
-                    serviceHandler,
-                    PostingGenerator.createPostingPlanChangeTwoAccs((i + 1) + "test2", MERCHANT_ACC, SYSTEM_ACC, HOLD_AMOUNT),
-                    retryTemplate,
-                    MERCHANT_ACC)
-            ));
+            initBalance(TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC);
+
+            for (int operation = 0; operation < OPERATIONS; operation += 2) {
+                futureList.add(executorService.submit(new HellgateClientExecutor(
+                        serviceHandler,
+                        PostingGenerator.createPostingPlanChangeTwoAccs(
+                                TEST_CASE_SECOND + "_iteration" + iteration + "_operation" + operation,
+                                TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC,
+                                TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC,
+                                HOLD_AMOUNT),
+                        retryTemplate,
+                        TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC)
+                ));
+                futureList.add(executorService.submit(new HellgateClientExecutor(
+                        serviceHandler,
+                        PostingGenerator.createPostingPlanChangeTwoAccs(
+                                TEST_CASE_SECOND + "_iteration" + iteration + "_operation" + (operation + 1),
+                                TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC,
+                                TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC,
+                                HOLD_AMOUNT),
+                        retryTemplate,
+                        TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC)
+                ));
+            }
+
+            executorService.shutdown();
+            executorService.awaitTermination(1, TimeUnit.HOURS);
+
+            checkBalancesAreNotNegative(futureList);
         }
-
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.HOURS);
-
-        checkBalancesAreNotNegative(futureList);
     }
 
-    private void initBalance() {
-        balanceService.createNewBalance(new Account(MERCHANT_ACC, "RUB"));
+    private void initBalance(String account) {
+        balanceService.createNewBalance(new Account(account, "RUB"));
         balanceService.proceedHold(OperationLog.builder()
                 .planId("test")
-                .account(new Account(MERCHANT_ACC, "RUB"))
+                .account(new Account(account, "RUB"))
                 .amountWithSign(HOLD_AMOUNT)
                 .currencySymbolicCode("RUB")
                 .sequence(1L)
@@ -156,7 +181,7 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
                 .build());
         balanceService.proceedFinalOp(OperationLog.builder()
                 .planId("test")
-                .account(new Account(MERCHANT_ACC, "RUB"))
+                .account(new Account(account, "RUB"))
                 .amountWithSign(HOLD_AMOUNT)
                 .currencySymbolicCode("RUB")
                 .sequence(1L)

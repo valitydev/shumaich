@@ -75,6 +75,8 @@ public class KafkaOffsetService {
     private Predicate<KafkaOffset> isBefore(Map<Integer, Long> currentOffsetsLookupMap) {
         return clockKafkaOffset -> {
             Long currentOffset = currentOffsetsLookupMap.get(clockKafkaOffset.getTopicPartition().partition());
+            if (currentOffset == null)
+                return false;
             return currentOffset > clockKafkaOffset.getOffset();
         };
     }

@@ -7,13 +7,16 @@ import com.rbkmoney.shumaich.converter.PostingPlanChangeToPostingPlanOperationCo
 import com.rbkmoney.shumaich.converter.PostingPlanToPostingPlanOperationConverter;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
+import com.rbkmoney.shumaich.domain.ValidationStatus;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class RequestRegistrationService {
@@ -34,7 +37,11 @@ public class RequestRegistrationService {
     public Clock registerFinalOp(PostingPlan postingPlan, OperationType operationType) {
         validationService.validatePostings(postingPlan);
         PostingPlanOperation postingPlanOperation = finalOpConverter.convert(postingPlan, operationType);
-        validationService.validateFinalOp(postingPlanOperation);
+        ValidationStatus validationStatus = validationService.validateFinalOp(postingPlanOperation);
+        if (validationStatus != null)  {
+            log.info("Hold does not exist, maybe it is already cleared");
+            postingPlanOperation.setValidationStatus(validationStatus);
+        }
 
         return writeToTopic(postingPlanOperation);
     }

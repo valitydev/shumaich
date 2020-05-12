@@ -19,7 +19,8 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
 
     public static final String SOME_ERROR_HAPPENED = "Some error happened";
     public static final String POSTINGS_ARE_INVALID = "Postings are invalid!";
-    
+    public static final String HOLD_IS_NOT_READ_YET = "Hold has not been read yet";
+
     private final ClockService clockService;
     private final RequestRegistrationService service;
     private final BalanceService balanceService;
@@ -32,7 +33,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             clockService.softCheckClockTimeline(clock);
             return service.registerHold(postingPlanChange);
         } catch (NotReadyException e) {
-            log.info("Previous hold is not read yet", e);
+            log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();
         } catch (CurrencyInPostingsNotConsistentException
                 | AccountsInPostingsAreEqualException
@@ -55,7 +56,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             clockService.hardCheckClockTimeline(clock);
             return service.registerFinalOp(postingPlan, OperationType.COMMIT);
         } catch (NotReadyException e) {
-            log.info("Hold is not read yet", e);
+            log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();
         } catch (CurrencyInPostingsNotConsistentException
                 | AccountsInPostingsAreEqualException
@@ -63,9 +64,6 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
                 | HoldChecksumMismatchException e) {
             log.warn(POSTINGS_ARE_INVALID, e);
             throw new InvalidPostingParams();
-        } catch (HoldNotExistException e) {
-            log.info("Hold not exist, maybe it is already cleared", e);
-            return clock;
         } catch (Exception e) {
             log.error(SOME_ERROR_HAPPENED, e);
             throw new TException(e);
@@ -83,7 +81,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             clockService.hardCheckClockTimeline(clock);
             return service.registerFinalOp(postingPlan, OperationType.ROLLBACK);
         } catch (NotReadyException e) {
-            log.info("Hold is not read yet", e);
+            log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();
         } catch (CurrencyInPostingsNotConsistentException
                 | AccountsInPostingsAreEqualException
@@ -91,9 +89,6 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
                 | HoldChecksumMismatchException e) {
             log.warn(POSTINGS_ARE_INVALID, e);
             throw new InvalidPostingParams();
-        } catch (HoldNotExistException e) {
-            log.info("Hold not exist, maybe it is already cleared", e);
-            return clock;
         } catch (Exception e) {
             log.error(SOME_ERROR_HAPPENED, e);
             throw new TException(e);
@@ -110,7 +105,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             clockService.softCheckClockTimeline(clock);
             return balanceService.getBalance(accountId).setClock(clock);
         } catch (NotReadyException e) {
-            log.info("Hold is not read yet", e);
+            log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();
         } catch (AccountNotFoundException e) {
             log.info("Account not found", e);
@@ -130,7 +125,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
             clockService.softCheckClockTimeline(clock);
             return balanceService.getAccount(accountId);
         } catch (NotReadyException e) {
-            log.info("Hold is not read yet", e);
+            log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();
         } catch (AccountNotFoundException e) {
             log.info("Account not found", e);
