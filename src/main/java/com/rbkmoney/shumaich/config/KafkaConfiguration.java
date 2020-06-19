@@ -36,7 +36,7 @@ public class KafkaConfiguration {
 
     private static final String NONE = "none";
 
-    @Value("${kafka.bootstrap.servers}")
+    @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Value("${kafka.topics.partitions-per-thread}")
