@@ -36,7 +36,7 @@ public class KafkaConfiguration {
 
     private static final String EARLIEST = "earliest";
 
-    @Value("${kafka.bootstrap.servers}")
+    @Value("${kafka.bootstrap-servers}")
     private String bootstrapServers;
 
     @Value("${kafka.topics.partitions-per-thread}")
@@ -52,7 +52,6 @@ public class KafkaConfiguration {
 
 
     private Map<String, Object> consumerConfig() {
-        //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);
@@ -66,7 +65,6 @@ public class KafkaConfiguration {
 
 
     private Map<String, Object> producerConfig() {
-        //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
