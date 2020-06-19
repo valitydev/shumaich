@@ -103,7 +103,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
         try {
             MdcUtils.setMdc(accountId);
             clockService.softCheckClockTimeline(clock);
-            return balanceService.getBalance(accountId).setClock(clock);
+            return balanceService.getBalance(accountId).setClock(clock); //todo добавить настоящий "последний" клок?
         } catch (NotReadyException e) {
             log.info(HOLD_IS_NOT_READ_YET, e);
             throw new NotReady();

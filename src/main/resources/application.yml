@@ -23,14 +23,9 @@ rocksdb:
   dir: "src/test/resources/rocksdb-temp"
 
 kafka:
-  bootstrap.servers: "localhost:29092"
+  bootstrap-servers: "localhost:29092"
   ssl:
-    enable: false
-    keystore-location: src/main/resources/cert/kenny-k.struzhkin.p12
-    keystore-password: kenny
-    key-password: kenny
-    server-password: kenny12
-    server-keystore-location: src/main/resources/cert/truststore.p12
+    enabled: false
   topics:
     consumer-monitor-rate: 1000
     partitions-per-thread: 2

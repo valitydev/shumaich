@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutionException;
 @RequiredArgsConstructor
 public class KafkaConfiguration {
 
-    private static final String EARLIEST = "earliest";
+    private static final String NONE = "none";
 
     @Value("${kafka.bootstrap.servers}")
     private String bootstrapServers;
@@ -52,10 +52,9 @@ public class KafkaConfiguration {
 
 
     private Map<String, Object> consumerConfig() {
-        //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, NONE);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
 
@@ -66,7 +65,6 @@ public class KafkaConfiguration {
 
 
     private Map<String, Object> producerConfig() {
-        //todo enrich
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
