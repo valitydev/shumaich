@@ -1,10 +1,9 @@
 package com.rbkmoney.shumaich.converter;
 
 import com.rbkmoney.damsel.shumaich.OperationLog;
-import com.rbkmoney.shumaich.domain.Account;
+import com.rbkmoney.damsel.shumaich.Account;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Comparator;

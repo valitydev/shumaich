@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.Account;
 import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.dao.BalanceDao;
-import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.exception.AccountNotFoundException;
 import com.rbkmoney.shumaich.exception.DaoException;
@@ -81,7 +81,7 @@ public class BalanceService {
         planService.processPlanModification(transaction, operationLog);
     }
 
-    private String getKey(Account account) {
+    private String getKey(com.rbkmoney.damsel.shumaich.Account account) {
         return account.getId();
     }
 

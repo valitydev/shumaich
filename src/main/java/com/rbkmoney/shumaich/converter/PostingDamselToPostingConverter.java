@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.shumaich.domain.Account;
+import com.rbkmoney.damsel.shumaich.Account;
 import com.rbkmoney.shumaich.domain.Posting;
 import org.springframework.stereotype.Component;
 

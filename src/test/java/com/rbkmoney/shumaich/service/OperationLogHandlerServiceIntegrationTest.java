@@ -9,7 +9,6 @@ import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.handler.Handler;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
@@ -21,7 +20,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;

@@ -1,12 +1,12 @@
 package com.rbkmoney.shumaich.handler;
 
+import com.rbkmoney.damsel.shumaich.Account;
 import com.rbkmoney.damsel.shumaich.Balance;
 import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
-import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.helpers.HellgateClientExecutor;
 import com.rbkmoney.shumaich.helpers.HoldPlansExecutor;
 import com.rbkmoney.shumaich.helpers.PostingGenerator;
