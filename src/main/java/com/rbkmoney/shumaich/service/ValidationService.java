@@ -45,20 +45,20 @@ public class ValidationService {
         }
     }
 
-    public ValidationStatus validateFinalOp(PostingPlanOperation postingPlanOperation) {
+    public ValidationError validateFinalOp(PostingPlanOperation postingPlanOperation) {
         Plan plan = planService.getPlan(postingPlanOperation.getPlanId(), OperationType.HOLD);
         return validatePreviousHold(plan, postingPlanOperation);
     }
 
-    public ValidationStatus validatePreviousHold(Plan plan, PostingPlanOperation postingPlanOperation) {
+    public ValidationError validatePreviousHold(Plan plan, PostingPlanOperation postingPlanOperation) {
         if (plan == null) {
-            return ValidationStatus.HOLD_NOT_EXIST;
+            return ValidationError.HOLD_NOT_EXIST;
         }
 
         for (com.rbkmoney.shumaich.domain.PostingBatch postingBatch : postingPlanOperation.getPostingBatches()) {
             PlanBatch storedBatch = plan.getBatch(postingBatch.getId());
             if (storedBatch == null) {
-                return ValidationStatus.HOLD_NOT_EXIST;
+                return ValidationError.HOLD_NOT_EXIST;
             }
             if (!HashUtils.areHashesEqual(postingBatch.getPostings(), storedBatch.getBatchHash())) {
                 throw new HoldChecksumMismatchException();

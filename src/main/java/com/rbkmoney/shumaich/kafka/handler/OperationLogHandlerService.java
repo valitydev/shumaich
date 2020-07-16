@@ -53,7 +53,7 @@ public class OperationLogHandlerService implements Handler<String, OperationLog>
     }
 
     private void processFinalOperation(OperationLog operationLog) {
-        if (operationLog.getValidationStatus() != null) {
+        if (operationLog.getValidationError() != null) {
             return;
         }
         balanceService.proceedFinalOp(operationLog);

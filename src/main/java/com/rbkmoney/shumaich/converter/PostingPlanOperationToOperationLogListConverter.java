@@ -21,19 +21,19 @@ public class PostingPlanOperationToOperationLogListConverter {
     public List<OperationLog> convert(PostingPlanOperation source) {
         List<OperationLog> operationLogs = new ArrayList<>();
         // Each posting will be divided into 2 operations
-        long totalOperations = 2 * source.getPostingBatches().stream()
+        long planOperationsCount = 2 * source.getPostingBatches().stream()
                 .mapToLong(postingBatch -> postingBatch.getPostings().size())
                 .sum();
-        PrimitiveIterator.OfLong sequenceId = LongStream.range(0, totalOperations).iterator();
+        PrimitiveIterator.OfLong sequenceId = LongStream.range(0, planOperationsCount).iterator();
         for (PostingBatch postingBatch : source.getPostingBatches()) {
             for (Posting posting : postingBatch.getPostings()) {
                 long batchHash = HashUtils.computeHash(postingBatch.getPostings());
                 operationLogs.add(
-                        createOperationLog(source, totalOperations, sequenceId.next(),
+                        createOperationLog(source, planOperationsCount, sequenceId.next(),
                                 postingBatch, posting, batchHash, true)
                 );
                 operationLogs.add(
-                        createOperationLog(source, totalOperations, sequenceId.next(),
+                        createOperationLog(source, planOperationsCount, sequenceId.next(),
                                 postingBatch, posting, batchHash, false)
                 );
             }
@@ -58,7 +58,7 @@ public class PostingPlanOperationToOperationLogListConverter {
 
     private OperationLog createOperationLog(
             PostingPlanOperation source,
-            long totalOperations,
+            long planOperationsCount,
             Long sequenceId,
             PostingBatch postingBatch,
             Posting posting,
@@ -76,9 +76,9 @@ public class PostingPlanOperationToOperationLogListConverter {
                         : Math.negateExact(posting.getAmount()))
                 .setCurrencySymbolicCode(posting.getCurrencySymbolicCode())
                 .setDescription(posting.getDescription())
-                .setSequence(sequenceId)
-                .setTotal(totalOperations)
+                .setSequenceId(sequenceId)
+                .setPlanOperationsCount(planOperationsCount)
                 .setBatchHash(batchHash)
-                .setValidationStatus(source.getValidationStatus());
+                .setValidationError(source.getValidationError());
     }
 }

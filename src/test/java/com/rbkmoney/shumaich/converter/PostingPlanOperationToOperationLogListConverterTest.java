@@ -23,16 +23,16 @@ public class PostingPlanOperationToOperationLogListConverterTest {
         PostingPlanOperation postingPlanOperation = TestData.postingPlanOperation();
         List<OperationLog> operationLogs = converter.convert(postingPlanOperation);
 
-        assertEquals(operationLogs.get(0).getTotal(), operationLogs.size());
+        assertEquals(operationLogs.get(0).getPlanOperationsCount(), operationLogs.size());
 
         List<OperationLog> orderedOperationLogs = operationLogs.stream()
-                .sorted(Comparator.comparingLong(OperationLog::getSequence))
+                .sorted(Comparator.comparingLong(OperationLog::getSequenceId))
                 .collect(Collectors.toList());
 
         for (int i = 0; i < orderedOperationLogs.size(); i++) {
             OperationLog operationLog = orderedOperationLogs.get(i);
-            assertEquals(i, (int) operationLog.getSequence());
-            assertEquals(orderedOperationLogs.size(), (int) operationLog.getTotal());
+            assertEquals(i, (int) operationLog.getSequenceId());
+            assertEquals(orderedOperationLogs.size(), (int) operationLog.getPlanOperationsCount());
         }
     }
 

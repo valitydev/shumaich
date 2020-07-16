@@ -173,16 +173,16 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
                 .setAccount(new com.rbkmoney.damsel.shumaich.Account(account, "RUB"))
                 .setAmountWithSign(HOLD_AMOUNT)
                 .setCurrencySymbolicCode("RUB")
-                .setSequence(1L)
-                .setTotal(1L)
+                .setSequenceId(1L)
+                .setPlanOperationsCount(1L)
                 .setBatchId(1L)
                 .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.HOLD));
         balanceService.proceedFinalOp(new OperationLog()
                 .setAccount(new com.rbkmoney.damsel.shumaich.Account(account, "RUB"))
                 .setAmountWithSign(HOLD_AMOUNT)
                 .setCurrencySymbolicCode("RUB")
-                .setSequence(1L)
-                .setTotal(1L)
+                .setSequenceId(1L)
+                .setPlanOperationsCount(1L)
                 .setBatchId(1L)
                 .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.COMMIT));
     }

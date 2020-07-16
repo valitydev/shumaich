@@ -22,7 +22,7 @@ public class IdempotentTestHandler implements Handler<String, OperationLog> {
                 continue;
             OperationLog value = record.value();
             receivedRecords.putIfAbsent(value.getPlanId(), new HashSet<>());
-            receivedRecords.get(value.getPlanId()).add(value.getSequence());
+            receivedRecords.get(value.getPlanId()).add(value.getSequenceId());
         }
     }
 

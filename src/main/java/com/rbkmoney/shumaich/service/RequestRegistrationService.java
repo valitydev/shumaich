@@ -33,10 +33,10 @@ public class RequestRegistrationService {
     public Clock registerFinalOp(PostingPlan postingPlan, OperationType operationType) {
         validationService.validatePostings(postingPlan);
         PostingPlanOperation postingPlanOperation = finalOpConverter.convert(postingPlan, operationType);
-        ValidationStatus validationStatus = validationService.validateFinalOp(postingPlanOperation);
-        if (validationStatus != null)  {
+        ValidationError validationError = validationService.validateFinalOp(postingPlanOperation);
+        if (validationError != null)  {
             log.info("Hold does not exist, maybe it is already cleared");
-            postingPlanOperation.setValidationStatus(validationStatus);
+            postingPlanOperation.setValidationError(validationError);
         }
 
         return writeToTopic(postingPlanOperation);

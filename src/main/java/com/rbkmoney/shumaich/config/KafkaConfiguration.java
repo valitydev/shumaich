@@ -1,10 +1,10 @@
 package com.rbkmoney.shumaich.config;
 
 import com.rbkmoney.damsel.shumaich.OperationLog;
+import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;
-import com.rbkmoney.shumaich.kafka.serde.OperationLogSerializer;
 import com.rbkmoney.shumaich.service.KafkaOffsetService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.CommonClientConfigs;
@@ -80,7 +80,7 @@ public class KafkaConfiguration {
     public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, OperationLogSerializer.class);
+        configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ThriftSerializer.class);
         KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
                 new DefaultKafkaProducerFactory<>(configs), true);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
@@ -99,9 +99,10 @@ public class KafkaConfiguration {
 
     @Bean
     @DependsOn("rocksDB")
-    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(AdminClient kafkaAdminClient,
-                                                                                             KafkaOffsetService kafkaOffsetService,
-                                                                                             Handler<String, OperationLog> handler) throws ExecutionException, InterruptedException {
+    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(
+            AdminClient kafkaAdminClient,
+            KafkaOffsetService kafkaOffsetService,
+            Handler<String, OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);

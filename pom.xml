@@ -54,7 +54,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>shumaich-proto</artifactId>
-            <version>1.36-e497baf</version>
+            <version>1.38-9f82af1</version>
         </dependency>
         <!--spring-->
         <dependency>
