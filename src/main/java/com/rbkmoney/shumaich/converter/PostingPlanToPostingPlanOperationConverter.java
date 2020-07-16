@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.converter;
 
+import com.rbkmoney.damsel.shumaich.OperationType;
 import com.rbkmoney.damsel.shumaich.PostingPlan;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,13 +1,9 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumaich.Posting;
-import com.rbkmoney.damsel.shumaich.PostingBatch;
-import com.rbkmoney.damsel.shumaich.PostingPlan;
-import com.rbkmoney.damsel.shumaich.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.converter.PostingBatchDamselToPostingBatchConverter;
 import com.rbkmoney.shumaich.converter.PostingDamselToPostingConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.apache.kafka.common.TopicPartition;
 

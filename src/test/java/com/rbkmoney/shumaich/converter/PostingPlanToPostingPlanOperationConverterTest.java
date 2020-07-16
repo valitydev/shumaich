@@ -1,14 +1,15 @@
 package com.rbkmoney.shumaich.converter;
 
+import com.rbkmoney.damsel.shumaich.OperationType;
 import com.rbkmoney.damsel.shumaich.PostingPlan;
 import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
-import org.junit.Assert;
 import org.junit.Test;
 
-import static com.rbkmoney.shumaich.domain.OperationType.HOLD;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PostingPlanToPostingPlanOperationConverterTest {
 
@@ -21,18 +22,20 @@ public class PostingPlanToPostingPlanOperationConverterTest {
     @Test
     public void convert() {
         PostingPlan source = TestData.postingPlan();
-        PostingPlanOperation plan = converter.convert(source, HOLD);
-        Assert.assertEquals("plan", plan.getPlanId());
-        Assert.assertEquals(HOLD, plan.getOperationType());
+        PostingPlanOperation plan = converter.convert(source, OperationType.HOLD);
+
+        assertEquals("plan", plan.getPlanId());
+        assertEquals(OperationType.HOLD, plan.getOperationType());
+
         for (int i = 0; i < plan.getPostingBatches().size(); i++) {
             PostingBatch postingBatch = plan.getPostingBatches().get(i);
-            Assert.assertEquals(source.batch_list.get(i).id, postingBatch.getId().longValue());
+            assertEquals(source.batch_list.get(i).id, postingBatch.getId().longValue());
             for (Posting posting : postingBatch.getPostings()) {
-                Assert.assertNotNull(posting.getAmount());
-                Assert.assertNotNull(posting.getFromAccount());
-                Assert.assertNotNull(posting.getToAccount());
-                Assert.assertNotNull(posting.getCurrencySymbolicCode());
-                Assert.assertNotNull(posting.getDescription());
+                assertNotNull(posting.getAmount());
+                assertNotNull(posting.getFromAccount());
+                assertNotNull(posting.getToAccount());
+                assertNotNull(posting.getCurrencySymbolicCode());
+                assertNotNull(posting.getDescription());
             }
         }
 

@@ -1,10 +1,10 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumaich.Posting;
-import com.rbkmoney.damsel.shumaich.PostingBatch;
-import com.rbkmoney.damsel.shumaich.PostingPlan;
-import com.rbkmoney.damsel.shumaich.PostingPlanChange;
-import com.rbkmoney.shumaich.domain.*;
+import com.rbkmoney.damsel.shumaich.*;
+import com.rbkmoney.shumaich.domain.Plan;
+import com.rbkmoney.shumaich.domain.PlanBatch;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
+import com.rbkmoney.shumaich.domain.ValidationStatus;
 import com.rbkmoney.shumaich.exception.AccountsHaveDifferentCurrenciesException;
 import com.rbkmoney.shumaich.exception.AccountsInPostingsAreEqualException;
 import com.rbkmoney.shumaich.exception.CurrencyInPostingsNotConsistentException;

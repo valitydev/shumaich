@@ -1,11 +1,11 @@
 package com.rbkmoney.shumaich.service;
 
 import com.rbkmoney.damsel.shumaich.Clock;
+import com.rbkmoney.damsel.shumaich.OperationType;
 import com.rbkmoney.damsel.shumaich.PostingPlan;
 import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.PostingPlanChangeToPostingPlanOperationConverter;
 import com.rbkmoney.shumaich.converter.PostingPlanToPostingPlanOperationConverter;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.domain.ValidationStatus;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
