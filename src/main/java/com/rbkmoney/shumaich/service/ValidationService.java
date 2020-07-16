@@ -4,7 +4,6 @@ import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.domain.Plan;
 import com.rbkmoney.shumaich.domain.PlanBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
-import com.rbkmoney.shumaich.domain.ValidationStatus;
 import com.rbkmoney.shumaich.exception.AccountsHaveDifferentCurrenciesException;
 import com.rbkmoney.shumaich.exception.AccountsInPostingsAreEqualException;
 import com.rbkmoney.shumaich.exception.CurrencyInPostingsNotConsistentException;

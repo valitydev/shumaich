@@ -2,6 +2,7 @@ package com.rbkmoney.shumaich.domain;
 
 
 import com.rbkmoney.damsel.shumaich.OperationType;
+import com.rbkmoney.damsel.shumaich.ValidationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
