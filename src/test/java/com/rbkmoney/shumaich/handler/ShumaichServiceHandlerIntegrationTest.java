@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;

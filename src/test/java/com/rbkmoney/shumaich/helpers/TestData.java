@@ -7,6 +7,7 @@ import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.apache.kafka.common.TopicPartition;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ public class TestData {
         return PostingPlanOperation.builder()
                 .planId(planId)
                 .operationType(OperationType.HOLD)
+                .creationTime(LocalDateTime.now())
                 .postingBatches(
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
@@ -40,6 +42,7 @@ public class TestData {
         return PostingPlanOperation.builder()
                 .planId("plan")
                 .operationType(OperationType.HOLD)
+                .creationTime(LocalDateTime.now())
                 .postingBatches(
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),

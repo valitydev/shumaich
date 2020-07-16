@@ -67,28 +67,29 @@ public class PostingGenerator {
     }
 
     public static PostingPlanChange createPostingPlanChange(String planId, String providerAcc, String systemAcc, String merchantAcc) {
-        PostingPlanChange postingPlanChange = new PostingPlanChange();
         PostingBatch batch = PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc);
-        postingPlanChange.setBatch(batch)
-                .setId(planId);
-        return postingPlanChange;
+
+        return new PostingPlanChange()
+                .setBatch(batch)
+                .setId(planId)
+                .setCreationTime("2016-03-22T06:12:27Z");
     }
 
     public static PostingPlanChange createPostingPlanChange(String planId, String providerAcc, String systemAcc, String merchantAcc, Long amount) {
-        PostingPlanChange postingPlanChange = new PostingPlanChange();
         PostingBatch batch = PostingGenerator.createBatchWithFixedAmount(providerAcc, systemAcc, merchantAcc, amount);
-        postingPlanChange.setBatch(batch)
+
+        return new PostingPlanChange()
+                .setBatch(batch)
+                .setCreationTime("2016-03-22T06:12:27Z")
                 .setId(planId);
-        return postingPlanChange;
     }
 
     public static PostingPlan createPostingPlan(String planId, String providerAcc, String systemAcc, String merchantAcc) {
-        PostingPlan postingPlan = new PostingPlan();
-        postingPlan.setBatchList(List.of(
-                PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc, BATCH_ID)
-        ));
-        postingPlan.setId(planId);
-        return postingPlan;
+        return new PostingPlan()
+                .setBatchList(List.of(
+                        PostingGenerator.createBatch(providerAcc, systemAcc, merchantAcc, BATCH_ID)))
+                .setId(planId)
+                .setCreationTime("2016-03-22T06:12:27Z");
     }
 
     public static Posting createPosting() {

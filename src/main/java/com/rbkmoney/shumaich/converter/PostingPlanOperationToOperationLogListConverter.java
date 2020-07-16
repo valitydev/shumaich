@@ -9,6 +9,7 @@ import com.rbkmoney.shumaich.utils.WoodyTraceUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.PrimitiveIterator;
@@ -79,6 +80,7 @@ public class PostingPlanOperationToOperationLogListConverter {
                 .setSequenceId(sequenceId)
                 .setPlanOperationsCount(planOperationsCount)
                 .setBatchHash(batchHash)
-                .setValidationError(source.getValidationError());
+                .setValidationError(source.getValidationError())
+                .setCreationTimeMs(source.getCreationTime().atZone(ZoneOffset.UTC).toInstant().toEpochMilli());
     }
 }

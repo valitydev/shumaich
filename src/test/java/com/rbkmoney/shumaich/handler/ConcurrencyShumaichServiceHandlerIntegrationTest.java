@@ -27,6 +27,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Futures;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -176,6 +177,7 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
                 .setSequenceId(1L)
                 .setPlanOperationsCount(1L)
                 .setBatchId(1L)
+                .setCreationTimeMs(Instant.EPOCH.toEpochMilli())
                 .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.HOLD));
         balanceService.proceedFinalOp(new OperationLog()
                 .setAccount(new com.rbkmoney.damsel.shumaich.Account(account, "RUB"))
@@ -184,6 +186,7 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
                 .setSequenceId(1L)
                 .setPlanOperationsCount(1L)
                 .setBatchId(1L)
+                .setCreationTimeMs(Instant.EPOCH.toEpochMilli())
                 .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.COMMIT));
     }
 
