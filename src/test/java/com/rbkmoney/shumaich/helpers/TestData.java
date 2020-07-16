@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Posting;
+import com.rbkmoney.damsel.shumaich.PostingBatch;
+import com.rbkmoney.damsel.shumaich.PostingPlan;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.PostingBatchDamselToPostingBatchConverter;
 import com.rbkmoney.shumaich.converter.PostingDamselToPostingConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
@@ -23,7 +23,7 @@ public class TestData {
     public static final String MERCHANT_ACC = "3";
     public static final String PLAN_ID = "plan";
 
-    private static PostingBatchDamselToPostingBatchConverter converter = new PostingBatchDamselToPostingBatchConverter(
+    private static final PostingBatchDamselToPostingBatchConverter CONVERTER = new PostingBatchDamselToPostingBatchConverter(
             new PostingDamselToPostingConverter()
     );
 
@@ -35,7 +35,7 @@ public class TestData {
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
-                        ).stream().map(converter::convert).collect(Collectors.toList())
+                        ).stream().map(CONVERTER::convert).collect(Collectors.toList())
                 )
                 .build();
     }
@@ -48,7 +48,7 @@ public class TestData {
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
-                        ).stream().map(converter::convert).collect(Collectors.toList())
+                        ).stream().map(CONVERTER::convert).collect(Collectors.toList())
                 )
                 .build();
     }

@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.utils;
 
-import com.rbkmoney.damsel.shumpune.VectorClock;
+import com.rbkmoney.damsel.shumaich.VectorClock;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

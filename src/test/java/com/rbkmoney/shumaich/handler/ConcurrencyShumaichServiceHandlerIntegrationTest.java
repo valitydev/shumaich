@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.handler;
 
-import com.rbkmoney.damsel.shumpune.Balance;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Balance;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
@@ -28,6 +28,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Futures;
 
+import java.io.OptionalDataException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -121,7 +122,7 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
                     .map(Futures::getUnchecked)
                     .map(Map.Entry::getValue)
                     .min(Comparator.comparing(Balance::getMinAvailableAmount))
-                    .get();
+                    .orElseThrow(RuntimeException::new);
 
             long expectedBalance = -HOLD_AMOUNT * OPERATIONS;
             assertEquals("Wrong balance after holds", expectedBalance, balance.getMinAvailableAmount());

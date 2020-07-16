@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import lombok.RequiredArgsConstructor;

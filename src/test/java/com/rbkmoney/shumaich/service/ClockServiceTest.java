@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.LatestClock;
+import com.rbkmoney.damsel.shumaich.Clock;
+import com.rbkmoney.damsel.shumaich.LatestClock;
 import com.rbkmoney.shumaich.dao.KafkaOffsetDao;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.exception.NotReadyException;
@@ -15,6 +15,7 @@ import org.junit.Test;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,7 +59,7 @@ public class ClockServiceTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void checkClockTimeline_empty() {
-        service.hardCheckClockTimeline(getEmptyClock());;
+        service.hardCheckClockTimeline(getEmptyClock());
     }
 
     @Test(expected = NotReadyException.class)
@@ -83,9 +84,9 @@ public class ClockServiceTest {
         for (int i = 0; i < kafkaOffsets.size(); i++) {
             KafkaOffset kafkaOffset = kafkaOffsets.get(i);
             RecordMetadata recordMetadata = recordMetadataList.get(i);
-            Assert.assertEquals(kafkaOffset.getOffset().longValue(), recordMetadata.offset());
-            Assert.assertEquals(kafkaOffset.getTopicPartition().topic(), recordMetadata.topic());
-            Assert.assertEquals(kafkaOffset.getTopicPartition().partition(), recordMetadata.partition());
+            assertEquals(kafkaOffset.getOffset().longValue(), recordMetadata.offset());
+            assertEquals(kafkaOffset.getTopicPartition().topic(), recordMetadata.topic());
+            assertEquals(kafkaOffset.getTopicPartition().partition(), recordMetadata.partition());
         }
     }
 

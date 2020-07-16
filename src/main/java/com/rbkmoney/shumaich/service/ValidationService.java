@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Posting;
+import com.rbkmoney.damsel.shumaich.PostingBatch;
+import com.rbkmoney.damsel.shumaich.PostingPlan;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.domain.*;
 import com.rbkmoney.shumaich.exception.AccountsHaveDifferentCurrenciesException;
 import com.rbkmoney.shumaich.exception.AccountsInPostingsAreEqualException;
@@ -32,15 +32,15 @@ public class ValidationService {
     }
 
     private void validatePostings(List<Posting> postings) {
-        String currencySymCode = postings.get(0).getCurrencySymCode();
+        String currencySymCode = postings.get(0).getCurrencySymbolicCode();
         for (Posting posting : postings) {
-            if (!posting.getCurrencySymCode().equals(currencySymCode)) {
+            if (!posting.getCurrencySymbolicCode().equals(currencySymCode)) {
                 throw new CurrencyInPostingsNotConsistentException();
             }
             if (posting.getFromAccount().getId().equals(posting.getToAccount().getId())) {
                 throw new AccountsInPostingsAreEqualException();
             }
-            if (!posting.getFromAccount().getCurrencySymCode().equals(posting.getToAccount().getCurrencySymCode())) {
+            if (!posting.getFromAccount().getCurrencySymbolicCode().equals(posting.getToAccount().getCurrencySymbolicCode())) {
                 throw new AccountsHaveDifferentCurrenciesException();
             }
         }

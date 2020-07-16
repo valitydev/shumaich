@@ -119,20 +119,20 @@ public class BalanceService {
         return balanceDao.get(accountId) != null;
     }
 
-    public com.rbkmoney.damsel.shumpune.Balance getBalance(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Balance getBalance(String accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();
         }
-        return new com.rbkmoney.damsel.shumpune.Balance(accountId,
+        return new com.rbkmoney.damsel.shumaich.Balance(accountId,
                 balance.getAmount(), balance.getMaxAmount(), balance.getMinAmount(), null);
     }
 
-    public com.rbkmoney.damsel.shumpune.Account getAccount(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Account getAccount(String accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();
         }
-        return new com.rbkmoney.damsel.shumpune.Account(accountId, balance.getCurrencySymbolicCode());
+        return new com.rbkmoney.damsel.shumaich.Account(accountId, balance.getCurrencySymbolicCode());
     }
 }

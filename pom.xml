@@ -53,8 +53,8 @@
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
-            <artifactId>shumpune-proto</artifactId>
-            <version>1.29-edb6db9</version>
+            <artifactId>shumaich-proto</artifactId>
+            <version>1.36-e497baf</version>
         </dependency>
         <!--spring-->
         <dependency>

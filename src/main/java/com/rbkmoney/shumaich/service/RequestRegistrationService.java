@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Clock;
+import com.rbkmoney.damsel.shumaich.PostingPlan;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.PostingPlanChangeToPostingPlanOperationConverter;
 import com.rbkmoney.shumaich.converter.PostingPlanToPostingPlanOperationConverter;
 import com.rbkmoney.shumaich.domain.OperationType;

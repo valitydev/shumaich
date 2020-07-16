@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.handler;
 
-import com.rbkmoney.damsel.shumpune.*;
+import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.exception.*;
 import com.rbkmoney.shumaich.service.BalanceService;

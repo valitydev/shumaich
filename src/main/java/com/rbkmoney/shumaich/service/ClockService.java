@@ -48,7 +48,7 @@ public class ClockService {
                 .collect(Collectors.toList());
     }
 
-    public void hardCheckClockTimeline(com.rbkmoney.damsel.shumpune.Clock clock) {
+    public void hardCheckClockTimeline(com.rbkmoney.damsel.shumaich.Clock clock) {
         if (clock == null || clock.isSetLatest()) {
             throw new IllegalArgumentException("Clock can't be latest");
         }
@@ -65,7 +65,7 @@ public class ClockService {
 
     }
 
-    public void softCheckClockTimeline(com.rbkmoney.damsel.shumpune.Clock clock) {
+    public void softCheckClockTimeline(com.rbkmoney.damsel.shumaich.Clock clock) {
         if (clock == null || clock.isSetLatest()) {
                 return;
         }

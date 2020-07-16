@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumpune.Balance;
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Balance;
+import com.rbkmoney.damsel.shumaich.Clock;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.handler.ShumaichServiceHandler;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
 import lombok.RequiredArgsConstructor;
