@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.AccountNotFoundException;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;

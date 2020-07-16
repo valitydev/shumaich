@@ -5,7 +5,6 @@ import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.Balance;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
@@ -14,7 +13,6 @@ import com.rbkmoney.shumaich.service.BalanceService;
 import com.rbkmoney.woody.thrift.impl.http.THSpawnClientBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -25,7 +23,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -36,6 +33,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -208,9 +206,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.commitPlan(TestData.postingPlan(), holdClock);
 
         //second commit shouldn't be proceeded
-        verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
-        verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
     }
 
@@ -249,9 +247,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
 
         //second rollback shouldn't be proceeded
-        verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
-        verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
     }
 
@@ -280,8 +278,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("notKekPlan")));
-        verify(balanceService, Mockito.times(0)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kekPlan")));
+        verify(balanceService, times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("notKekPlan")));
+        verify(balanceService, times(0)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kekPlan")));
     }
 
     @Test
@@ -296,9 +294,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
-        verify(balanceService, Mockito.times(0))
+        verify(balanceService, times(0))
                 .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
     }
 

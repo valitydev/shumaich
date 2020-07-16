@@ -1,13 +1,12 @@
 package com.rbkmoney.shumaich.handler;
 
 import com.rbkmoney.damsel.shumaich.Balance;
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.Account;
-import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.helpers.HellgateClientExecutor;
 import com.rbkmoney.shumaich.helpers.HoldPlansExecutor;
 import com.rbkmoney.shumaich.helpers.PostingGenerator;
@@ -28,7 +27,6 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.testcontainers.shaded.com.google.common.util.concurrent.Futures;
 
-import java.io.OptionalDataException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -170,26 +168,23 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
 
     private void initBalance(String account) {
         balanceService.createNewBalance(new Account(account, "RUB"));
-        balanceService.proceedHold(OperationLog.builder()
-                .planId("test")
-                .account(new Account(account, "RUB"))
-                .amountWithSign(HOLD_AMOUNT)
-                .currencySymbolicCode("RUB")
-                .sequence(1L)
-                .total(1L)
-                .batchId(1L)
-                .operationType(OperationType.HOLD)
-                .build());
-        balanceService.proceedFinalOp(OperationLog.builder()
-                .planId("test")
-                .account(new Account(account, "RUB"))
-                .amountWithSign(HOLD_AMOUNT)
-                .currencySymbolicCode("RUB")
-                .sequence(1L)
-                .total(1L)
-                .batchId(1L)
-                .operationType(OperationType.COMMIT)
-                .build());
+        balanceService.proceedHold(new OperationLog()
+                .setPlanId("test")
+                .setAccount(new com.rbkmoney.damsel.shumaich.Account(account, "RUB"))
+                .setAmountWithSign(HOLD_AMOUNT)
+                .setCurrencySymbolicCode("RUB")
+                .setSequence(1L)
+                .setTotal(1L)
+                .setBatchId(1L)
+                .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.HOLD));
+        balanceService.proceedFinalOp(new OperationLog()
+                .setAccount(new com.rbkmoney.damsel.shumaich.Account(account, "RUB"))
+                .setAmountWithSign(HOLD_AMOUNT)
+                .setCurrencySymbolicCode("RUB")
+                .setSequence(1L)
+                .setTotal(1L)
+                .setBatchId(1L)
+                .setOperationType(com.rbkmoney.damsel.shumaich.OperationType.COMMIT));
     }
 
     private void checkBalancesAreNotNegative(List<Future<Map.Entry<String, Balance>>> futureList) {

@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.dao.PlanDao;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.Plan;
 import com.rbkmoney.shumaich.domain.PlanBatch;

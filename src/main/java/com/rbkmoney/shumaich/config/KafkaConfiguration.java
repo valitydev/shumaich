@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.config;
 
-import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.kafka.handler.Handler;
 import com.rbkmoney.shumaich.kafka.serde.OperationLogDeserializer;

@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.converter;
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.domain.Account;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
 import org.junit.Assert;
@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertEquals;
+
 public class PostingPlanOperationToOperationLogListConverterTest {
 
     PostingPlanOperationToOperationLogListConverter converter = new PostingPlanOperationToOperationLogListConverter();
@@ -22,7 +24,7 @@ public class PostingPlanOperationToOperationLogListConverterTest {
         PostingPlanOperation postingPlanOperation = TestData.postingPlanOperation();
         List<OperationLog> operationLogs = converter.convert(postingPlanOperation);
 
-        Assert.assertEquals(operationLogs.get(0).getTotal().longValue(), operationLogs.size());
+        assertEquals(operationLogs.get(0).getTotal(), operationLogs.size());
 
         List<OperationLog> orderedOperationLogs = operationLogs.stream()
                 .sorted(Comparator.comparingLong(OperationLog::getSequence))
@@ -30,8 +32,8 @@ public class PostingPlanOperationToOperationLogListConverterTest {
 
         for (int i = 0; i < orderedOperationLogs.size(); i++) {
             OperationLog operationLog = orderedOperationLogs.get(i);
-            Assert.assertEquals(i, operationLog.getSequence().intValue());
-            Assert.assertEquals(orderedOperationLogs.size(), operationLog.getTotal().intValue());
+            assertEquals(i, (int) operationLog.getSequence());
+            assertEquals(orderedOperationLogs.size(), (int) operationLog.getTotal());
         }
     }
 
@@ -66,6 +68,6 @@ public class PostingPlanOperationToOperationLogListConverterTest {
                                 .mapToLong(OperationLog::getAmountWithSign)
                                 .reduce(0, Long::sum)));
 
-        Assert.assertEquals(postingPlanMoneyMap, operationLogMoneyMap);
+        assertEquals(postingPlanMoneyMap, operationLogMoneyMap);
     }
 }

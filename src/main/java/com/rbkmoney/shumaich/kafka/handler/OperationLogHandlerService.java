@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.kafka.handler;
 
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.kafka.common.util.LogUtil;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.service.BalanceService;
 import com.rbkmoney.shumaich.utils.MdcUtils;
 import lombok.RequiredArgsConstructor;

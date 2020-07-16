@@ -1,6 +1,6 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
@@ -56,29 +56,29 @@ public class PostingPlanOperationToOperationLogListConverter {
         }
     }
 
-    private OperationLog createOperationLog(PostingPlanOperation source,
-                                            long totalOperations,
-                                            Long sequenceId,
-                                            PostingBatch postingBatch,
-                                            Posting posting,
-                                            long batchHash,
-                                            boolean first) {
-        return OperationLog.builder()
-                .planId(source.getPlanId())
-                .batchId(postingBatch.getId())
-                .operationType(source.getOperationType())
-                .account(first
+    private OperationLog createOperationLog(
+            PostingPlanOperation source,
+            long totalOperations,
+            Long sequenceId,
+            PostingBatch postingBatch,
+            Posting posting,
+            long batchHash,
+            boolean first) {
+        return new OperationLog()
+                .setPlanId(source.getPlanId())
+                .setBatchId(postingBatch.getId())
+                .setOperationType(source.getOperationType())
+                .setAccount(first
                         ? posting.getToAccount()
                         : posting.getFromAccount())
-                .amountWithSign(first
+                .setAmountWithSign(first
                         ? posting.getAmount()
                         : Math.negateExact(posting.getAmount()))
-                .currencySymbolicCode(posting.getCurrencySymbolicCode())
-                .description(posting.getDescription())
-                .sequence(sequenceId)
-                .total(totalOperations)
-                .batchHash(batchHash)
-                .validationStatus(source.getValidationStatus())
-                .build();
+                .setCurrencySymbolicCode(posting.getCurrencySymbolicCode())
+                .setDescription(posting.getDescription())
+                .setSequence(sequenceId)
+                .setTotal(totalOperations)
+                .setBatchHash(batchHash)
+                .setValidationStatus(source.getValidationStatus());
     }
 }
