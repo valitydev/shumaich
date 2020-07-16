@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
+import com.rbkmoney.damsel.shumaich.OperationType;
 import com.rbkmoney.shumaich.dao.PlanDao;
-import com.rbkmoney.shumaich.domain.OperationLog;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.Plan;
 import com.rbkmoney.shumaich.domain.PlanBatch;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class PlanService {
         Plan plan = planDao.get(getKey(operationLog));
         return plan != null
                 && plan.getBatch(operationLog.getBatchId()) != null
-                && plan.getBatch(operationLog.getBatchId()).containsSequenceValue(operationLog.getSequence());
+                && plan.getBatch(operationLog.getBatchId()).containsSequenceValue(operationLog.getSequenceId());
     }
 
     public void processPlanModification(Transaction transaction, OperationLog operationLog) {
@@ -54,20 +54,20 @@ public class PlanService {
 
     private void createPlan(Transaction transaction, OperationLog operationLog) {
         Set<Long> sequencesArrived = new HashSet<>();
-        sequencesArrived.add(operationLog.getSequence());
+        sequencesArrived.add(operationLog.getSequenceId());
 
         planDao.putInTransaction(transaction, getKey(operationLog), Plan.builder()
                 .planId(operationLog.getPlanId())
-                .batches(Map.of(operationLog.getBatchId(), new PlanBatch(sequencesArrived, operationLog.getTotal(), operationLog.getBatchHash())))
+                .batches(Map.of(operationLog.getBatchId(), new PlanBatch(sequencesArrived, operationLog.getPlanOperationsCount(), operationLog.getBatchHash())))
                 .build());
     }
 
     private void addToPlan(Transaction transaction, OperationLog operationLog, Plan plan) {
         PlanBatch batch = plan.getBatch(operationLog.getBatchId());
         if (batch == null) {
-            batch = plan.addBatch(operationLog.getBatchId(), new PlanBatch(new HashSet<>(), operationLog.getTotal(), operationLog.getBatchHash()));
+            batch = plan.addBatch(operationLog.getBatchId(), new PlanBatch(new HashSet<>(), operationLog.getPlanOperationsCount(), operationLog.getBatchHash()));
         }
-        batch.addSequence(operationLog.getSequence());
+        batch.addSequence(operationLog.getSequenceId());
         planDao.putInTransaction(transaction, getKey(operationLog), plan);
     }
 

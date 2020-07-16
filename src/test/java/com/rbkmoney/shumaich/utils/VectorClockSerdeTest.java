@@ -1,8 +1,10 @@
 package com.rbkmoney.shumaich.utils;
 
-import com.rbkmoney.damsel.shumpune.VectorClock;
+import com.rbkmoney.damsel.shumaich.VectorClock;
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class VectorClockSerdeTest {
 
@@ -16,7 +18,7 @@ public class VectorClockSerdeTest {
 
         String deserializedClock = VectorClockSerde.deserialize(clock);
 
-        Assert.assertEquals(CLOCK_TEST, deserializedClock);
+        assertEquals(CLOCK_TEST, deserializedClock);
     }
 
 }

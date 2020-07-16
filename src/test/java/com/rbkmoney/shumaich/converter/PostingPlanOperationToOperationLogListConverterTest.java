@@ -1,10 +1,9 @@
 package com.rbkmoney.shumaich.converter;
 
-import com.rbkmoney.shumaich.domain.Account;
-import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.damsel.shumaich.OperationLog;
+import com.rbkmoney.damsel.shumaich.Account;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Comparator;
@@ -12,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
 
 public class PostingPlanOperationToOperationLogListConverterTest {
 
@@ -22,16 +23,16 @@ public class PostingPlanOperationToOperationLogListConverterTest {
         PostingPlanOperation postingPlanOperation = TestData.postingPlanOperation();
         List<OperationLog> operationLogs = converter.convert(postingPlanOperation);
 
-        Assert.assertEquals(operationLogs.get(0).getTotal().longValue(), operationLogs.size());
+        assertEquals(operationLogs.get(0).getPlanOperationsCount(), operationLogs.size());
 
         List<OperationLog> orderedOperationLogs = operationLogs.stream()
-                .sorted(Comparator.comparingLong(OperationLog::getSequence))
+                .sorted(Comparator.comparingLong(OperationLog::getSequenceId))
                 .collect(Collectors.toList());
 
         for (int i = 0; i < orderedOperationLogs.size(); i++) {
             OperationLog operationLog = orderedOperationLogs.get(i);
-            Assert.assertEquals(i, operationLog.getSequence().intValue());
-            Assert.assertEquals(orderedOperationLogs.size(), operationLog.getTotal().intValue());
+            assertEquals(i, (int) operationLog.getSequenceId());
+            assertEquals(orderedOperationLogs.size(), (int) operationLog.getPlanOperationsCount());
         }
     }
 
@@ -66,6 +67,6 @@ public class PostingPlanOperationToOperationLogListConverterTest {
                                 .mapToLong(OperationLog::getAmountWithSign)
                                 .reduce(0, Long::sum)));
 
-        Assert.assertEquals(postingPlanMoneyMap, operationLogMoneyMap);
+        assertEquals(postingPlanMoneyMap, operationLogMoneyMap);
     }
 }

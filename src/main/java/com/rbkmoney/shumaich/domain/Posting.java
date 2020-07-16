@@ -1,5 +1,6 @@
 package com.rbkmoney.shumaich.domain;
 
+import com.rbkmoney.damsel.shumaich.Account;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

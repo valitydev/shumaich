@@ -1,13 +1,16 @@
 package com.rbkmoney.shumaich.converter;
 
+import com.rbkmoney.damsel.shumaich.OperationType;
 import com.rbkmoney.shumaich.domain.Posting;
 import com.rbkmoney.shumaich.domain.PostingBatch;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.helpers.TestData;
-import org.junit.Assert;
 import org.junit.Test;
 
-import static com.rbkmoney.shumaich.domain.OperationType.HOLD;
+import java.time.LocalDateTime;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PostingPlanChangeToPostingPlanOperationConverterTest {
 
@@ -20,16 +23,19 @@ public class PostingPlanChangeToPostingPlanOperationConverterTest {
     @Test
     public void convert() {
         PostingPlanOperation plan = converter.convert(TestData.postingPlanChange());
-        Assert.assertEquals("plan", plan.getPlanId());
-        Assert.assertEquals(HOLD, plan.getOperationType());
+
+        assertEquals(LocalDateTime.parse("2016-03-22T06:12:27"), plan.getCreationTime());
+        assertEquals("plan", plan.getPlanId());
+        assertEquals(OperationType.HOLD, plan.getOperationType());
+
         for (PostingBatch postingBatch : plan.getPostingBatches()) {
-            Assert.assertEquals(1L, postingBatch.getId().longValue());
+            assertEquals(1L, postingBatch.getId().longValue());
             for (Posting posting : postingBatch.getPostings()) {
-                Assert.assertNotNull(posting.getAmount());
-                Assert.assertNotNull(posting.getFromAccount());
-                Assert.assertNotNull(posting.getToAccount());
-                Assert.assertNotNull(posting.getCurrencySymbolicCode());
-                Assert.assertNotNull(posting.getDescription());
+                assertNotNull(posting.getAmount());
+                assertNotNull(posting.getFromAccount());
+                assertNotNull(posting.getToAccount());
+                assertNotNull(posting.getCurrencySymbolicCode());
+                assertNotNull(posting.getDescription());
             }
         }
     }

@@ -1,9 +1,9 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.Account;
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.dao.BalanceDao;
-import com.rbkmoney.shumaich.domain.Account;
 import com.rbkmoney.shumaich.domain.Balance;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.AccountNotFoundException;
 import com.rbkmoney.shumaich.exception.DaoException;
 import lombok.RequiredArgsConstructor;
@@ -81,7 +81,7 @@ public class BalanceService {
         planService.processPlanModification(transaction, operationLog);
     }
 
-    private String getKey(Account account) {
+    private String getKey(com.rbkmoney.damsel.shumaich.Account account) {
         return account.getId();
     }
 
@@ -119,20 +119,20 @@ public class BalanceService {
         return balanceDao.get(accountId) != null;
     }
 
-    public com.rbkmoney.damsel.shumpune.Balance getBalance(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Balance getBalance(String accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();
         }
-        return new com.rbkmoney.damsel.shumpune.Balance(accountId,
+        return new com.rbkmoney.damsel.shumaich.Balance(accountId,
                 balance.getAmount(), balance.getMaxAmount(), balance.getMinAmount(), null);
     }
 
-    public com.rbkmoney.damsel.shumpune.Account getAccount(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Account getAccount(String accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();
         }
-        return new com.rbkmoney.damsel.shumpune.Account(accountId, balance.getCurrencySymbolicCode());
+        return new com.rbkmoney.damsel.shumaich.Account(accountId, balance.getCurrencySymbolicCode());
     }
 }

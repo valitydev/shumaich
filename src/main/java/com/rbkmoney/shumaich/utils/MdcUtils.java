@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.utils;
 
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
-import com.rbkmoney.shumaich.domain.OperationLog;
+import com.rbkmoney.damsel.shumaich.OperationLog;
+import com.rbkmoney.damsel.shumaich.PostingPlan;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.woody.api.MDCUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 public class MdcUtils {
     public static final String PLAN_ID = "plan_id";
     public static final String ACCOUNT_ID = "account_id";
-
 
     public static void setMdc(OperationLog operationLog) {
         MDC.put(PLAN_ID, operationLog.getPlanId());

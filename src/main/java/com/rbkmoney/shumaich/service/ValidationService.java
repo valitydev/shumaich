@@ -1,10 +1,9 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
-import com.rbkmoney.shumaich.domain.*;
+import com.rbkmoney.damsel.shumaich.*;
+import com.rbkmoney.shumaich.domain.Plan;
+import com.rbkmoney.shumaich.domain.PlanBatch;
+import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.exception.AccountsHaveDifferentCurrenciesException;
 import com.rbkmoney.shumaich.exception.AccountsInPostingsAreEqualException;
 import com.rbkmoney.shumaich.exception.CurrencyInPostingsNotConsistentException;
@@ -32,34 +31,34 @@ public class ValidationService {
     }
 
     private void validatePostings(List<Posting> postings) {
-        String currencySymCode = postings.get(0).getCurrencySymCode();
+        String currencySymCode = postings.get(0).getCurrencySymbolicCode();
         for (Posting posting : postings) {
-            if (!posting.getCurrencySymCode().equals(currencySymCode)) {
+            if (!posting.getCurrencySymbolicCode().equals(currencySymCode)) {
                 throw new CurrencyInPostingsNotConsistentException();
             }
             if (posting.getFromAccount().getId().equals(posting.getToAccount().getId())) {
                 throw new AccountsInPostingsAreEqualException();
             }
-            if (!posting.getFromAccount().getCurrencySymCode().equals(posting.getToAccount().getCurrencySymCode())) {
+            if (!posting.getFromAccount().getCurrencySymbolicCode().equals(posting.getToAccount().getCurrencySymbolicCode())) {
                 throw new AccountsHaveDifferentCurrenciesException();
             }
         }
     }
 
-    public ValidationStatus validateFinalOp(PostingPlanOperation postingPlanOperation) {
+    public ValidationError validateFinalOp(PostingPlanOperation postingPlanOperation) {
         Plan plan = planService.getPlan(postingPlanOperation.getPlanId(), OperationType.HOLD);
         return validatePreviousHold(plan, postingPlanOperation);
     }
 
-    public ValidationStatus validatePreviousHold(Plan plan, PostingPlanOperation postingPlanOperation) {
+    public ValidationError validatePreviousHold(Plan plan, PostingPlanOperation postingPlanOperation) {
         if (plan == null) {
-            return ValidationStatus.HOLD_NOT_EXIST;
+            return ValidationError.HOLD_NOT_EXIST;
         }
 
         for (com.rbkmoney.shumaich.domain.PostingBatch postingBatch : postingPlanOperation.getPostingBatches()) {
             PlanBatch storedBatch = plan.getBatch(postingBatch.getId());
             if (storedBatch == null) {
-                return ValidationStatus.HOLD_NOT_EXIST;
+                return ValidationError.HOLD_NOT_EXIST;
             }
             if (!HashUtils.areHashesEqual(postingBatch.getPostings(), storedBatch.getBatchHash())) {
                 throw new HoldChecksumMismatchException();

@@ -12,10 +12,10 @@ public class PostingBatchDamselToPostingBatchConverter {
 
     private final PostingDamselToPostingConverter converter;
 
-    public PostingBatch convert(com.rbkmoney.damsel.shumpune.PostingBatch postingBatchDamsel) {
+    public PostingBatch convert(com.rbkmoney.damsel.shumaich.PostingBatch postingBatchDamsel) {
         return PostingBatch.builder()
-                .id(postingBatchDamsel.id)
-                .postings(postingBatchDamsel.postings.stream().map(converter::convert).collect(Collectors.toList()))
+                .id(postingBatchDamsel.getId())
+                .postings(postingBatchDamsel.getPostings().stream().map(converter::convert).collect(Collectors.toList()))
                 .build();
     }
 

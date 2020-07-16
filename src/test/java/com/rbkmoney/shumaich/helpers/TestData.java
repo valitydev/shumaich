@@ -1,16 +1,13 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumpune.Posting;
-import com.rbkmoney.damsel.shumpune.PostingBatch;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.converter.PostingBatchDamselToPostingBatchConverter;
 import com.rbkmoney.shumaich.converter.PostingDamselToPostingConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import org.apache.kafka.common.TopicPartition;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +20,7 @@ public class TestData {
     public static final String MERCHANT_ACC = "3";
     public static final String PLAN_ID = "plan";
 
-    private static PostingBatchDamselToPostingBatchConverter converter = new PostingBatchDamselToPostingBatchConverter(
+    private static final PostingBatchDamselToPostingBatchConverter CONVERTER = new PostingBatchDamselToPostingBatchConverter(
             new PostingDamselToPostingConverter()
     );
 
@@ -31,11 +28,12 @@ public class TestData {
         return PostingPlanOperation.builder()
                 .planId(planId)
                 .operationType(OperationType.HOLD)
+                .creationTime(LocalDateTime.now())
                 .postingBatches(
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
-                        ).stream().map(converter::convert).collect(Collectors.toList())
+                        ).stream().map(CONVERTER::convert).collect(Collectors.toList())
                 )
                 .build();
     }
@@ -44,11 +42,12 @@ public class TestData {
         return PostingPlanOperation.builder()
                 .planId("plan")
                 .operationType(OperationType.HOLD)
+                .creationTime(LocalDateTime.now())
                 .postingBatches(
                         List.of(
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC),
                                 PostingGenerator.createBatch(PROVIDER_ACC, SYSTEM_ACC, MERCHANT_ACC)
-                        ).stream().map(converter::convert).collect(Collectors.toList())
+                        ).stream().map(CONVERTER::convert).collect(Collectors.toList())
                 )
                 .build();
     }

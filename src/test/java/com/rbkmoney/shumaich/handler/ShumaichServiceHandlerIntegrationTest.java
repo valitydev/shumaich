@@ -1,11 +1,10 @@
 package com.rbkmoney.shumaich.handler;
 
-import com.rbkmoney.damsel.shumpune.*;
+import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
 import com.rbkmoney.shumaich.dao.PlanDao;
 import com.rbkmoney.shumaich.domain.Balance;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.exception.NotReadyException;
 import com.rbkmoney.shumaich.helpers.TestData;
 import com.rbkmoney.shumaich.helpers.TestUtils;
@@ -14,10 +13,8 @@ import com.rbkmoney.shumaich.service.BalanceService;
 import com.rbkmoney.woody.thrift.impl.http.THSpawnClientBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.rocksdb.RocksDBException;
 import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +22,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.annotation.DirtiesContext;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
 
@@ -33,7 +29,11 @@ import static com.rbkmoney.shumaich.helpers.TestData.*;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Awaitility.given;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * Kafka doesn't clear data between tests, so u need unique ID's for test runs
@@ -78,23 +78,23 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void holdSuccess() throws TException, InterruptedException, IOException {
+    public void holdSuccess() throws TException {
 
         handler.hold(TestData.postingPlanChange(), null);
 
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(0, balance.getAmount().intValue());
-            Assert.assertEquals(-3, balance.getMinAmount().intValue());
-            Assert.assertEquals(100, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(0, balance.getAmount().intValue());
+            assertEquals(-3, balance.getMinAmount().intValue());
+            assertEquals(100, balance.getMaxAmount().intValue());
         });
 
     }
 
     @Test
-    public void holdIdempotency() throws TException, InterruptedException {
+    public void holdIdempotency() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
         handler.hold(plan1, null);
         handler.hold(plan1, null);
@@ -108,15 +108,15 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(0, balance.getAmount().intValue());
-            Assert.assertEquals(-6, balance.getMinAmount().intValue());
-            Assert.assertEquals(200, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(0, balance.getAmount().intValue());
+            assertEquals(-6, balance.getMinAmount().intValue());
+            assertEquals(200, balance.getMaxAmount().intValue());
         });
     }
 
     @Test
-    public void holdWithClockRightInTime() throws TException, InterruptedException {
+    public void holdWithClockRightInTime() throws TException {
 
         PostingPlanChange plan1 = TestData.postingPlanChange();
         Clock clock = handler.hold(plan1, null);
@@ -131,10 +131,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(0, balance.getAmount().intValue());
-            Assert.assertEquals(-6, balance.getMinAmount().intValue());
-            Assert.assertEquals(200, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(0, balance.getAmount().intValue());
+            assertEquals(-6, balance.getMinAmount().intValue());
+            assertEquals(200, balance.getMaxAmount().intValue());
         });
     }
 
@@ -153,7 +153,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentCurrency() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
-        plan1.getBatch().getPostings().get(0).setCurrencySymCode("USD");
+        plan1.getBatch().getPostings().get(0).setCurrencySymbolicCode("USD");
         handler.hold(plan1, null);
     }
 
@@ -167,7 +167,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     @Test(expected = InvalidPostingParams.class)
     public void holdInvalidPostingsDifferentAccountCurrencies() throws TException {
         PostingPlanChange plan1 = TestData.postingPlanChange();
-        plan1.getBatch().getPostings().get(0).getFromAccount().setCurrencySymCode("USD");
+        plan1.getBatch().getPostings().get(0).getFromAccount().setCurrencySymbolicCode("USD");
         handler.hold(plan1, null);
     }
 
@@ -180,10 +180,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(97, balance.getAmount().intValue());
-            Assert.assertEquals(97, balance.getMinAmount().intValue());
-            Assert.assertEquals(97, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(97, balance.getAmount().intValue());
+            assertEquals(97, balance.getMinAmount().intValue());
+            assertEquals(97, balance.getMaxAmount().intValue());
         });
     }
 
@@ -196,17 +196,19 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(97, balance.getAmount().intValue());
-            Assert.assertEquals(97, balance.getMinAmount().intValue());
-            Assert.assertEquals(97, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(97, balance.getAmount().intValue());
+            assertEquals(97, balance.getMinAmount().intValue());
+            assertEquals(97, balance.getMaxAmount().intValue());
         });
 
         handler.commitPlan(TestData.postingPlan(), holdClock);
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
-        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
+        verify(balanceService, times(6))
+                .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
+        verify(balanceService, times(6))
+                .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("unique")));
     }
 
     @Test
@@ -218,10 +220,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(0, balance.getAmount().intValue());
-            Assert.assertEquals(0, balance.getMinAmount().intValue());
-            Assert.assertEquals(0, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(0, balance.getAmount().intValue());
+            assertEquals(0, balance.getMinAmount().intValue());
+            assertEquals(0, balance.getMaxAmount().intValue());
         });
     }
 
@@ -235,17 +237,19 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
-            Assert.assertNotNull(balance);
-            Assert.assertEquals(0, balance.getAmount().intValue());
-            Assert.assertEquals(0, balance.getMinAmount().intValue());
-            Assert.assertEquals(0, balance.getMaxAmount().intValue());
+            assertNotNull(balance);
+            assertEquals(0, balance.getAmount().intValue());
+            assertEquals(0, balance.getMinAmount().intValue());
+            assertEquals(0, balance.getMaxAmount().intValue());
         });
 
         handler.rollbackPlan(TestData.postingPlan(), holdClock);
 
         //second rollback shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
-        Mockito.verify(balanceService, Mockito.times(6)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
+        verify(balanceService, times(6))
+                .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
+        verify(balanceService, times(6))
+                .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("12345")));
     }
 
     @Test(expected = InvalidPostingParams.class)
@@ -273,8 +277,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("notKekPlan")));
-        Mockito.verify(balanceService, Mockito.times(0)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kekPlan")));
+        verify(balanceService, times(6)).proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("notKekPlan")));
+        verify(balanceService, times(0)).proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kekPlan")));
     }
 
     @Test
@@ -289,9 +293,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
                 .until(() -> handler.rollbackPlan(postingPlan, fakeClock), notNullValue());
 
         //second commit shouldn't be proceeded
-        Mockito.verify(balanceService, Mockito.times(6))
+        verify(balanceService, times(6))
                 .proceedHold(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
-        Mockito.verify(balanceService, Mockito.times(0))
+        verify(balanceService, times(0))
                 .proceedFinalOp(argThat(operationLog -> operationLog.getPlanId().contains("kektus")));
     }
 
@@ -302,8 +306,8 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             final Account account = handler.getAccountByID(SYSTEM_ACC, null);
 
-            Assert.assertEquals(SYSTEM_ACC, account.getId());
-            Assert.assertEquals("RUB", account.getCurrencySymCode());
+            assertEquals(SYSTEM_ACC, account.getId());
+            assertEquals("RUB", account.getCurrencySymbolicCode());
         });
     }
 
@@ -323,10 +327,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         handler.hold(postingPlanChange(), null);
 
         await().untilAsserted(() -> {
-            final com.rbkmoney.damsel.shumpune.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
+            final com.rbkmoney.damsel.shumaich.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
 
-            Assert.assertEquals(MERCHANT_ACC, balanceByID.getId());
-            Assert.assertEquals(-3, balanceByID.min_available_amount);
+            assertEquals(MERCHANT_ACC, balanceByID.getId());
+            assertEquals(-3, balanceByID.min_available_amount);
         });
     }
 
@@ -350,10 +354,10 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         shumaichIface.hold(postingPlanChange(), null);
 
         await().untilAsserted(() -> {
-            final com.rbkmoney.damsel.shumpune.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
+            final com.rbkmoney.damsel.shumaich.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
 
-            Assert.assertEquals(MERCHANT_ACC, balanceByID.getId());
-            Assert.assertEquals(-3, balanceByID.min_available_amount);
+            assertEquals(MERCHANT_ACC, balanceByID.getId());
+            assertEquals(-3, balanceByID.min_available_amount);
         });
     }
 }

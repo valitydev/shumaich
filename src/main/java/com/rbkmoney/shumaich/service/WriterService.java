@@ -1,7 +1,7 @@
 package com.rbkmoney.shumaich.service;
 
+import com.rbkmoney.damsel.shumaich.OperationLog;
 import com.rbkmoney.shumaich.converter.PostingPlanOperationToOperationLogListConverter;
-import com.rbkmoney.shumaich.domain.OperationLog;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
 import com.rbkmoney.shumaich.exception.KafkaException;
 import lombok.RequiredArgsConstructor;

@@ -1,13 +1,9 @@
 package com.rbkmoney.shumaich.service;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.converter.PostingPlanChangeToPostingPlanOperationConverter;
 import com.rbkmoney.shumaich.converter.PostingPlanToPostingPlanOperationConverter;
-import com.rbkmoney.shumaich.domain.OperationType;
 import com.rbkmoney.shumaich.domain.PostingPlanOperation;
-import com.rbkmoney.shumaich.domain.ValidationStatus;
 import com.rbkmoney.shumaich.utils.VectorClockSerde;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +33,10 @@ public class RequestRegistrationService {
     public Clock registerFinalOp(PostingPlan postingPlan, OperationType operationType) {
         validationService.validatePostings(postingPlan);
         PostingPlanOperation postingPlanOperation = finalOpConverter.convert(postingPlan, operationType);
-        ValidationStatus validationStatus = validationService.validateFinalOp(postingPlanOperation);
-        if (validationStatus != null)  {
+        ValidationError validationError = validationService.validateFinalOp(postingPlanOperation);
+        if (validationError != null)  {
             log.info("Hold does not exist, maybe it is already cleared");
-            postingPlanOperation.setValidationStatus(validationStatus);
+            postingPlanOperation.setValidationError(validationError);
         }
 
         return writeToTopic(postingPlanOperation);

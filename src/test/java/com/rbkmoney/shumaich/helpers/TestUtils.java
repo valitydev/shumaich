@@ -1,8 +1,8 @@
 package com.rbkmoney.shumaich.helpers;
 
-import com.rbkmoney.damsel.shumpune.Clock;
-import com.rbkmoney.damsel.shumpune.PostingPlan;
-import com.rbkmoney.damsel.shumpune.PostingPlanChange;
+import com.rbkmoney.damsel.shumaich.Clock;
+import com.rbkmoney.damsel.shumaich.PostingPlan;
+import com.rbkmoney.damsel.shumaich.PostingPlanChange;
 import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.KafkaOffset;
 import com.rbkmoney.shumaich.service.ClockService;
@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 
 public class TestUtils {
 
-    private static ClockService clockService = new ClockService(null);
+    private static final ClockService CLOCK_SERVICE = new ClockService(null);
 
     public static Clock moveClockFurther(Clock clock, Map<Long, Long> partitionsAndIncrement) {
-        List<KafkaOffset> kafkaOffsets = clockService.parseClock(VectorClockSerde.deserialize(clock.getVector()));
+        List<KafkaOffset> kafkaOffsets = CLOCK_SERVICE.parseClock(VectorClockSerde.deserialize(clock.getVector()));
         kafkaOffsets.forEach(kafkaOffset -> {
-            Integer partition = kafkaOffset.getTopicPartition().partition();
-            if (partitionsAndIncrement.containsKey(partition.longValue()))
-                kafkaOffset.setOffset(kafkaOffset.getOffset() + partitionsAndIncrement.get(partition.longValue()));
+            int partition = kafkaOffset.getTopicPartition().partition();
+            if (partitionsAndIncrement.containsKey((long) partition))
+                kafkaOffset.setOffset(kafkaOffset.getOffset() + partitionsAndIncrement.get((long) partition));
         });
         return Clock.vector(
                 VectorClockSerde.serialize(
