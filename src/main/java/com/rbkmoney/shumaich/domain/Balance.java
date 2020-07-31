@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Balance {
-    private String accountId;
+    private Long accountId;
     private String currencySymbolicCode;
     private Long amount;
     private Long minAmount;

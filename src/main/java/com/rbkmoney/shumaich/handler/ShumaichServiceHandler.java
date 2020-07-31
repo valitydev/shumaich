@@ -98,7 +98,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     }
 
     @Override
-    public Balance getBalanceByID(String accountId, Clock clock) throws TException {
+    public Balance getBalanceByID(long accountId, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(accountId);
             clockService.softCheckClockTimeline(clock);
@@ -118,7 +118,7 @@ public class ShumaichServiceHandler implements AccounterSrv.Iface {
     }
 
     @Override
-    public Account getAccountByID(String accountId, Clock clock) throws TException {
+    public Account getAccountByID(long accountId, Clock clock) throws TException {
         try {
             MdcUtils.setMdc(accountId);
             clockService.softCheckClockTimeline(clock);

@@ -15,9 +15,9 @@ public class TestData {
 
     public static final String TEST_TOPIC = "test_topic";
     public static final String OPERATION_LOG_TOPIC = "operation_log";
-    public static final String PROVIDER_ACC = "1";
-    public static final String SYSTEM_ACC = "2";
-    public static final String MERCHANT_ACC = "3";
+    public static final Long PROVIDER_ACC = 1000000000L;
+    public static final Long SYSTEM_ACC = 2000000000L;
+    public static final Long MERCHANT_ACC = 3000000000L;
     public static final String PLAN_ID = "plan";
 
     private static final PostingBatchDamselToPostingBatchConverter CONVERTER = new PostingBatchDamselToPostingBatchConverter(

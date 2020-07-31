@@ -17,7 +17,7 @@ public class HoldPlansExecutor implements Callable<Map.Entry<String, Balance>> {
     private final ShumaichServiceHandler serviceHandler;
     private final PostingPlanChange postingPlanChange;
     private final RetryTemplate retryTemplate;
-    private final String accountToCheck;
+    private final Long accountToCheck;
 
     @Override
     public Map.Entry<String, Balance> call() throws Exception {

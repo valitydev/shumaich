@@ -81,7 +81,7 @@ public class BalanceService {
         planService.processPlanModification(transaction, operationLog);
     }
 
-    private String getKey(com.rbkmoney.damsel.shumaich.Account account) {
+    private Long getKey(com.rbkmoney.damsel.shumaich.Account account) {
         return account.getId();
     }
 
@@ -115,11 +115,11 @@ public class BalanceService {
         return balance;
     }
 
-    public boolean balanceExists(String accountId) {
+    public boolean balanceExists(Long accountId) {
         return balanceDao.get(accountId) != null;
     }
 
-    public com.rbkmoney.damsel.shumaich.Balance getBalance(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Balance getBalance(Long accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();
@@ -128,7 +128,7 @@ public class BalanceService {
                 balance.getAmount(), balance.getMaxAmount(), balance.getMinAmount(), null);
     }
 
-    public com.rbkmoney.damsel.shumaich.Account getAccount(String accountId) {
+    public com.rbkmoney.damsel.shumaich.Account getAccount(Long accountId) {
         final Balance balance = balanceDao.get(accountId);
         if (balance == null) {
             throw new AccountNotFoundException();

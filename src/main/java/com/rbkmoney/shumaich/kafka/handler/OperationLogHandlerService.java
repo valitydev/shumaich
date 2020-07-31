@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class OperationLogHandlerService implements Handler<String, OperationLog> {
+public class OperationLogHandlerService implements Handler<Long, OperationLog> {
 
     private final BalanceService balanceService;
 
     @Override
-    public void handle(ConsumerRecords<String, OperationLog> records) {
+    public void handle(ConsumerRecords<Long, OperationLog> records) {
         log.info("Received records: {}", LogUtil.toSummaryString(records));
         for (ConsumerRecord<?, OperationLog> record : records) {
             OperationLog operationLog = record.value();

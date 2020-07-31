@@ -17,7 +17,7 @@ public class HellgateClientExecutor implements Callable<Map.Entry<String, Balanc
     private final ShumaichServiceHandler serviceHandler;
     private final PostingPlanChange postingPlanChange;
     private final RetryTemplate retryTemplate;
-    private final String account;
+    private final Long account;
 
     @Override
     public Map.Entry<String, Balance> call() throws Exception {

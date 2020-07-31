@@ -25,17 +25,17 @@ import java.util.concurrent.ExecutionException;
 public class WriterService {
 
     private final PostingPlanOperationToOperationLogListConverter converter;
-    private final KafkaTemplate<String, OperationLog> kafkaTemplate;
+    private final KafkaTemplate<Long, OperationLog> kafkaTemplate;
 
     public List<RecordMetadata> write(PostingPlanOperation postingPlanOperation) {
         List<OperationLog> operationLogs = converter.convert(postingPlanOperation);
-        List<ListenableFuture<SendResult<String, OperationLog>>> futures = new ArrayList<>();
+        List<ListenableFuture<SendResult<Long, OperationLog>>> futures = new ArrayList<>();
         for (OperationLog operationLog : operationLogs) {
             futures.add(kafkaTemplate.sendDefault(operationLog.getAccount().getId(), operationLog));
         }
         try {
             Map<TopicPartition, RecordMetadata> recordMetadataMap = new HashMap<>();
-            for (ListenableFuture<SendResult<String, OperationLog>> future : futures) {
+            for (ListenableFuture<SendResult<Long, OperationLog>> future : futures) {
                 RecordMetadata recordMetadata = future.get().getRecordMetadata(); //todo completable future?
                 TopicPartition topicPartition = new TopicPartition(recordMetadata.topic(), recordMetadata.partition());
                 RecordMetadata mapRecordMetadata = recordMetadataMap.get(topicPartition);

@@ -1,5 +1,6 @@
 package com.rbkmoney.shumaich.handler;
 
+import com.google.common.primitives.Longs;
 import com.rbkmoney.damsel.shumaich.*;
 import com.rbkmoney.shumaich.IntegrationTestBase;
 import com.rbkmoney.shumaich.dao.BalanceDao;
@@ -59,7 +60,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     BalanceService balanceService;
 
     @Autowired
-    TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
+    TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager;
 
     @Before
     public void clearDbData() throws RocksDBException {
@@ -72,9 +73,9 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         rocksDB.delete(planDao.getColumnFamilyHandle(), (PLAN_ID + "_ROLLBACK").getBytes());
         rocksDB.delete(planDao.getColumnFamilyHandle(), "plan1_ROLLBACK".getBytes());
         rocksDB.delete(planDao.getColumnFamilyHandle(), "plan2_ROLLBACK".getBytes());
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), MERCHANT_ACC.getBytes());
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), SYSTEM_ACC.getBytes());
-        rocksDB.delete(balanceDao.getColumnFamilyHandle(), PROVIDER_ACC.getBytes());
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), Longs.toByteArray(MERCHANT_ACC));
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), Longs.toByteArray(SYSTEM_ACC));
+        rocksDB.delete(balanceDao.getColumnFamilyHandle(), Longs.toByteArray(PROVIDER_ACC));
     }
 
     @Test
@@ -306,7 +307,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             final Account account = handler.getAccountByID(SYSTEM_ACC, null);
 
-            assertEquals(SYSTEM_ACC, account.getId());
+            assertEquals(SYSTEM_ACC.longValue(), account.getId());
             assertEquals("RUB", account.getCurrencySymbolicCode());
         });
     }
@@ -319,7 +320,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     @Test(expected = NotReady.class)
     public void accountNotReady() throws TException {
         final Clock clock = handler.hold(postingPlanChange(), null);
-        handler.getAccountByID(SYSTEM_ACC, TestUtils.moveClockFurther(clock, Map.of(3L, 10L)));
+        handler.getAccountByID(SYSTEM_ACC, TestUtils.moveClockFurther(clock, Map.of(1L, 100L, 2L, 100L, 3L, 100L)));
     }
 
     @Test
@@ -329,7 +330,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             final com.rbkmoney.damsel.shumaich.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
 
-            assertEquals(MERCHANT_ACC, balanceByID.getId());
+            assertEquals(MERCHANT_ACC.longValue(), balanceByID.getId());
             assertEquals(-3, balanceByID.min_available_amount);
         });
     }
@@ -342,7 +343,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     @Test(expected = NotReady.class)
     public void balanceNotReady() throws TException {
         final Clock clock = handler.hold(postingPlanChange(), null);
-        handler.getBalanceByID(MERCHANT_ACC, TestUtils.moveClockFurther(clock, Map.of(3L, 10L)));
+        handler.getBalanceByID(MERCHANT_ACC, TestUtils.moveClockFurther(clock, Map.of(1L, 10L, 2L, 10L, 3L, 10L)));
     }
 
     @Test
@@ -356,7 +357,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
         await().untilAsserted(() -> {
             final com.rbkmoney.damsel.shumaich.Balance balanceByID = handler.getBalanceByID(MERCHANT_ACC, null);
 
-            assertEquals(MERCHANT_ACC, balanceByID.getId());
+            assertEquals(MERCHANT_ACC.longValue(), balanceByID.getId());
             assertEquals(-3, balanceByID.min_available_amount);
         });
     }

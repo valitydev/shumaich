@@ -50,14 +50,14 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
     private static final int THREAD_NUM = 16;
     private static final long HOLD_AMOUNT = 100;
 
-    public static final String TEST_CASE_FIRST = "test1";
-    public static final String TEST_CASE_SECOND = "test2";
+    public static final Long TEST_CASE_FIRST = 10000000000L;
+    public static final Long TEST_CASE_SECOND = 20000000000L;
 
     @Autowired
     ShumaichServiceHandler serviceHandler;
 
     @Autowired
-    TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
+    TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager;
 
     @Autowired
     ApplicationContext applicationContext;
@@ -101,16 +101,16 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
             for (int operation = 0; operation < OPERATIONS; operation++) {
                 PostingPlanChange postingPlanChange = PostingGenerator.createPostingPlanChange(
                         TEST_CASE_FIRST + "_iteration" + iteration + "_operation" + operation,
-                         TEST_CASE_FIRST + "_iteration" + iteration + PROVIDER_ACC,
-                         TEST_CASE_FIRST + "_iteration" + iteration + SYSTEM_ACC,
-                         TEST_CASE_FIRST + "_iteration" + iteration + MERCHANT_ACC,
+                         TEST_CASE_FIRST  + iteration + PROVIDER_ACC,
+                         TEST_CASE_FIRST + iteration + SYSTEM_ACC,
+                         TEST_CASE_FIRST + iteration + MERCHANT_ACC,
                         HOLD_AMOUNT);
 
                 futureList.add(executorService.submit(new HoldPlansExecutor(
                         serviceHandler,
                         postingPlanChange,
                         retryTemplate,
-                        TEST_CASE_FIRST + "_iteration" + iteration + MERCHANT_ACC)
+                        TEST_CASE_FIRST + iteration + MERCHANT_ACC)
                 ));
             }
 
@@ -135,28 +135,28 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
 
             List<Future<Map.Entry<String, Balance>>> futureList = new ArrayList<>();
 
-            initBalance(TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC);
+            initBalance(TEST_CASE_SECOND + iteration + MERCHANT_ACC);
 
             for (int operation = 0; operation < OPERATIONS; operation += 2) {
                 futureList.add(executorService.submit(new HellgateClientExecutor(
                         serviceHandler,
                         PostingGenerator.createPostingPlanChangeTwoAccs(
-                                TEST_CASE_SECOND + "_iteration" + iteration + "_operation" + operation,
-                                TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC,
-                                TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC,
+                                TEST_CASE_SECOND + iteration + "_operation" + operation,
+                                TEST_CASE_SECOND + iteration + SYSTEM_ACC,
+                                TEST_CASE_SECOND + iteration + MERCHANT_ACC,
                                 HOLD_AMOUNT),
                         retryTemplate,
-                        TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC)
+                        TEST_CASE_SECOND + iteration + SYSTEM_ACC)
                 ));
                 futureList.add(executorService.submit(new HellgateClientExecutor(
                         serviceHandler,
                         PostingGenerator.createPostingPlanChangeTwoAccs(
-                                TEST_CASE_SECOND + "_iteration" + iteration + "_operation" + (operation + 1),
-                                TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC,
-                                TEST_CASE_SECOND + "_iteration" + iteration + SYSTEM_ACC,
+                                TEST_CASE_SECOND + iteration + "_operation" + (operation + 1),
+                                TEST_CASE_SECOND + iteration + MERCHANT_ACC,
+                                TEST_CASE_SECOND + iteration + SYSTEM_ACC,
                                 HOLD_AMOUNT),
                         retryTemplate,
-                        TEST_CASE_SECOND + "_iteration" + iteration + MERCHANT_ACC)
+                        TEST_CASE_SECOND + iteration + MERCHANT_ACC)
                 ));
             }
 
@@ -167,7 +167,7 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
         }
     }
 
-    private void initBalance(String account) {
+    private void initBalance(Long account) {
         balanceService.createNewBalance(new Account(account, "RUB"));
         balanceService.proceedHold(new OperationLog()
                 .setPlanId("test")

@@ -36,7 +36,7 @@ public class ValidationService {
             if (!posting.getCurrencySymbolicCode().equals(currencySymCode)) {
                 throw new CurrencyInPostingsNotConsistentException();
             }
-            if (posting.getFromAccount().getId().equals(posting.getToAccount().getId())) {
+            if (posting.getFromAccount().getId() == (posting.getToAccount().getId())) {
                 throw new AccountsInPostingsAreEqualException();
             }
             if (!posting.getFromAccount().getCurrencySymbolicCode().equals(posting.getToAccount().getCurrencySymbolicCode())) {
