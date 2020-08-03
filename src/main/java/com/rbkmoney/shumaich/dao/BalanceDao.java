@@ -1,5 +1,6 @@
 package com.rbkmoney.shumaich.dao;
 
+import com.google.common.primitives.Longs;
 import com.rbkmoney.shumaich.converter.CommonConverter;
 import com.rbkmoney.shumaich.domain.Balance;
 import com.rbkmoney.shumaich.exception.DaoException;
@@ -24,26 +25,26 @@ public class BalanceDao extends RocksDbDao {
 
     public void put(Balance balance) {
         try {
-            rocksDB.put(columnFamilyHandle, balance.getAccountId().getBytes(), CommonConverter.toBytes(balance));
+            rocksDB.put(columnFamilyHandle, Longs.toByteArray(balance.getAccountId()), CommonConverter.toBytes(balance));
         } catch (RocksDBException e) {
             log.error("Can't create balance with ID: {}", balance.getAccountId(), e);
             throw new DaoException("Can't create balance with ID: " + balance.getAccountId(), e);
         }
     }
 
-    public Balance get(String accountId) {
+    public Balance get(Long accountId) {
         try {
-            return CommonConverter.fromBytes(rocksDB.get(columnFamilyHandle, accountId.getBytes()), Balance.class);
+            return CommonConverter.fromBytes(rocksDB.get(columnFamilyHandle, Longs.toByteArray(accountId)), Balance.class);
         } catch (RocksDBException e) {
             log.error("Can't get balance with ID: {}", accountId, e);
             throw new DaoException("Can't get balance with ID: " + accountId, e);
         }
     }
 
-    public Balance getForUpdate(Transaction transaction, String accountId) {
+    public Balance getForUpdate(Transaction transaction, Long accountId) {
         try (ReadOptions readOptions = new ReadOptions()) {
             return CommonConverter.fromBytes(
-                    transaction.get(columnFamilyHandle, readOptions, accountId.getBytes()), Balance.class);
+                    transaction.get(columnFamilyHandle, readOptions, Longs.toByteArray(accountId)), Balance.class);
         } catch (RocksDBException e) {
             log.error("Can't get balance for update with ID: {}", accountId, e);
             throw new DaoException("Can't get balance for update with ID: " + accountId, e);
@@ -52,7 +53,7 @@ public class BalanceDao extends RocksDbDao {
 
     public void putInTransaction(Transaction transaction, Balance balance) {
         try {
-            transaction.put(columnFamilyHandle, balance.getAccountId().getBytes(), CommonConverter.toBytes(balance));
+            transaction.put(columnFamilyHandle, Longs.toByteArray(balance.getAccountId()), CommonConverter.toBytes(balance));
         } catch (RocksDBException e) {
             log.error("Can't update balance with ID: {}", balance.getAccountId(), e);
             throw new DaoException("Can't update balance with ID: " + balance.getAccountId(), e);

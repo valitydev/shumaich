@@ -30,7 +30,7 @@ import static org.junit.Assert.assertEquals;
 public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBase {
 
     @SpyBean
-    KafkaTemplate<String, OperationLog> operationLogKafkaTemplate;
+    KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate;
 
     @Autowired
     IdempotentTestHandler handler;
@@ -39,7 +39,7 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
     private PostingPlanOperationToOperationLogListConverter converter;
 
     @Autowired
-    TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager;
+    TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager;
 
     @Test
     public void successEventPropagation() {
@@ -94,7 +94,7 @@ public class OperationLogHandlerServiceIntegrationTest extends IntegrationTestBa
 
         @Bean
         @Primary
-        Handler<String, OperationLog> operationLogHandler() {
+        Handler<Long, OperationLog> operationLogHandler() {
             return new IdempotentTestHandler();
         }
 

@@ -15,8 +15,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.security.auth.SecurityProtocol;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.common.serialization.LongDeserializer;
+import org.apache.kafka.common.serialization.LongSerializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -56,7 +56,7 @@ public class KafkaConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, EARLIEST);
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
 
         configureSsl(props, kafkaSslProperties);
 
@@ -68,7 +68,7 @@ public class KafkaConfiguration {
         final Map<String, Object> props = new HashMap<>();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ProducerConfig.ACKS_CONFIG, "all");
-        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
 
         configureSsl(props, kafkaSslProperties);
 
@@ -77,11 +77,11 @@ public class KafkaConfiguration {
 
     @Bean
     @DependsOn(value = "rocksDB")
-    public KafkaTemplate<String, OperationLog> operationLogKafkaTemplate() {
+    public KafkaTemplate<Long, OperationLog> operationLogKafkaTemplate() {
         Map<String, Object> configs = producerConfig();
-        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ThriftSerializer.class);
-        KafkaTemplate<String, OperationLog> kafkaTemplate = new KafkaTemplate<>(
+        KafkaTemplate<Long, OperationLog> kafkaTemplate = new KafkaTemplate<>(
                 new DefaultKafkaProducerFactory<>(configs), true);
         kafkaTemplate.setDefaultTopic(operationLogTopicName);
         return kafkaTemplate;
@@ -99,12 +99,12 @@ public class KafkaConfiguration {
 
     @Bean
     @DependsOn("rocksDB")
-    public TopicConsumptionManager<String, OperationLog> operationLogTopicConsumptionManager(
+    public TopicConsumptionManager<Long, OperationLog> operationLogTopicConsumptionManager(
             AdminClient kafkaAdminClient,
             KafkaOffsetService kafkaOffsetService,
-            Handler<String, OperationLog> handler) throws ExecutionException, InterruptedException {
+            Handler<Long, OperationLog> handler) throws ExecutionException, InterruptedException {
         Map<String, Object> consumerProps = consumerConfig();
-        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, OperationLogDeserializer.class);
 
         TopicDescription topicDescription = kafkaAdminClient

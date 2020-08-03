@@ -29,8 +29,8 @@ public class HashUtils {
         List<String> propsToHash = new ArrayList<>();
         for (Posting posting : postingsCopy) {
             propsToHash.add(posting.getAmount().toString());
-            propsToHash.add(posting.getFromAccount().getId());
-            propsToHash.add(posting.getToAccount().getId());
+            propsToHash.add(Long.toString(posting.getFromAccount().getId()));
+            propsToHash.add(Long.toString(posting.getToAccount().getId()));
         }
         return propsToHash;
     }

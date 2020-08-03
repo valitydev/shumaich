@@ -18,7 +18,7 @@ public class MdcUtils {
 
     public static void setMdc(OperationLog operationLog) {
         MDC.put(PLAN_ID, operationLog.getPlanId());
-        MDC.put(ACCOUNT_ID, operationLog.getAccount().getId());
+        MDC.put(ACCOUNT_ID, Long.toString(operationLog.getAccount().getId()));
         if (WoodyTraceUtils.getActiveSpan() != null) {
             MDCUtils.putSpanData(WoodyTraceUtils.getActiveSpan());
         }
@@ -34,8 +34,8 @@ public class MdcUtils {
         MDC.put(ACCOUNT_ID, extractAccounts(postingPlan));
     }
 
-    public static void setMdc(String accountId) {
-        MDC.put(ACCOUNT_ID, accountId);
+    public static void setMdc(Long accountId) {
+        MDC.put(ACCOUNT_ID, accountId.toString());
     }
 
     public static void clearMdc() {
@@ -47,6 +47,7 @@ public class MdcUtils {
                 .stream()
                 .flatMap(posting -> Stream.of(posting.getFromAccount().getId(), posting.getToAccount().getId()))
                 .distinct()
+                .map(Object::toString)
                 .collect(Collectors.joining(","));
     }
 
@@ -55,6 +56,7 @@ public class MdcUtils {
                 .flatMap(batch -> batch.getPostings().stream())
                 .flatMap(posting ->  Stream.of(posting.getFromAccount().getId(), posting.getToAccount().getId()))
                 .distinct()
+                .map(Object::toString)
                 .collect(Collectors.joining(","));
     }
 }
