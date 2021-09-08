@@ -356,7 +356,7 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
 
     @Test(expected = AccountNotFound.class)
     public void balanceNotFound() throws TException {
-        handler.getBalanceByID(MERCHANT_ACC, null);
+        handler.getBalanceByID(MERCHANT_ACC + 123, null);
     }
 
     @Test(expected = NotReady.class)
