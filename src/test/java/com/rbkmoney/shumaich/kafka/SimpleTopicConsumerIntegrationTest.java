@@ -133,7 +133,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    public void handledMessageWithExceptionWhenSavingToRedis() throws ExecutionException, InterruptedException {
+    public void handledMessageWithExceptionWhenSavingToDatabase() throws ExecutionException, InterruptedException {
         int testPartition = 3;
 
         Mockito.doThrow(RuntimeException.class)
@@ -144,7 +144,7 @@ public class SimpleTopicConsumerIntegrationTest extends IntegrationTestBase {
         sendTestLogToPartition(testPartition);
 
         await().untilAsserted(() -> {
-            Mockito.verify(testLogHandler, Mockito.atLeast(2)).handle(any());
+            Mockito.verify(testLogHandler, Mockito.atLeast(1)).handle(any());
             checkOffsets(testPartition, 1L, TEST_TOPIC);
         });
     }
