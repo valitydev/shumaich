@@ -21,6 +21,8 @@ import org.rocksdb.TransactionDB;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 
 import java.net.URI;
@@ -176,8 +178,25 @@ public class ShumaichServiceHandlerIntegrationTest extends IntegrationTestBase {
     public void commitSuccess() throws TException {
         Clock holdClock = handler.hold(postingPlanChange(), null);
 
-        await().until(() -> handler.commitPlan(TestData.postingPlan(), holdClock), notNullValue());
-
+        await().until(() -> {
+                    RetryTemplate retryTemplate = new RetryTemplate();
+                    try {
+                        return retryTemplate.execute((RetryCallback<Object, Throwable>) context -> {
+                            {
+                                try {
+                                    return handler.commitPlan(postingPlan(), holdClock);
+                                } catch (TException e) {
+                                    log.error("Exception", e);
+                                    return null;
+                                }
+                            }
+                        });
+                    } catch (Throwable throwable) {
+                        log.error("Exception", throwable);
+                        return null;
+                    }
+                }, notNullValue()
+        );
         await().untilAsserted(() -> {
             Balance balance = balanceDao.get(MERCHANT_ACC);
 
