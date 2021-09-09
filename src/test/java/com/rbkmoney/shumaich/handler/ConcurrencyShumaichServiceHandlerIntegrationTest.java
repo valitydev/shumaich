@@ -14,7 +14,6 @@ import com.rbkmoney.shumaich.kafka.TopicConsumptionManager;
 import com.rbkmoney.shumaich.service.BalanceService;
 import com.rbkmoney.shumaich.service.PlanService;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -79,7 +78,6 @@ public class ConcurrencyShumaichServiceHandlerIntegrationTest extends Integratio
 
     RetryTemplate retryTemplate = getRetryTemplate();
 
-    @NotNull
     private RetryTemplate getRetryTemplate() {
         RetryTemplate retryTemplate = new RetryTemplate();
         retryTemplate.setRetryPolicy(new AlwaysRetryPolicy());
