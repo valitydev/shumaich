@@ -5,8 +5,8 @@
 
     <parent>
         <groupId>com.rbkmoney</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.1.RELEASE</version>
+        <artifactId>service-parent-pom</artifactId>
+        <version>1.2.14</version>
 
     </parent>
 
@@ -40,7 +40,6 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>custom-actuator-endpoints</artifactId>
-            <version>0.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney.woody</groupId>
@@ -60,7 +59,7 @@
         <dependency>
             <groupId>com.rbkmoney.geck</groupId>
             <artifactId>serializer</artifactId>
-            <version>0.6.9</version>
+            <version>0.6.11</version>
         </dependency>
 
         <!--spring-->
@@ -81,7 +80,6 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>2.2.8.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.kafka</groupId>
@@ -118,7 +116,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>1.18.16</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
