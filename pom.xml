@@ -5,8 +5,9 @@
 
     <parent>
         <groupId>com.rbkmoney</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.1.1.RELEASE</version>
+        <artifactId>service-parent-pom</artifactId>
+        <version>1.2.14</version>
+
     </parent>
 
     <artifactId>shumaich</artifactId>
@@ -21,8 +22,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>11</java.version>
         <server.port>8022</server.port>
-        <exposed.ports>${server.port}</exposed.ports>
-        <dockerfile.base.service.tag>bc95d0d6dc13c693acd2b274531a7d604b877bf3</dockerfile.base.service.tag>
+        <management.port>8023</management.port>
+        <exposed.ports>${server.port} ${management.port}</exposed.ports>
+        <dockerfile.base.service.tag>1d57d77a38eb7b351eca3c1a9a3e45ec441ed9aa</dockerfile.base.service.tag>
         <dockerfile.build.tag>bdc05544014b3475c8e0726d3b3d6fc81b09db96</dockerfile.build.tag>
         <dockerfile.registry>${env.REGISTRY}</dockerfile.registry>
         <shared.resources.version>0.3.6</shared.resources.version>
@@ -39,7 +41,6 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>custom-actuator-endpoints</artifactId>
-            <version>0.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney.woody</groupId>
@@ -59,7 +60,7 @@
         <dependency>
             <groupId>com.rbkmoney.geck</groupId>
             <artifactId>serializer</artifactId>
-            <version>0.6.9</version>
+            <version>0.6.11</version>
         </dependency>
 
         <!--spring-->
@@ -80,7 +81,6 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
-            <version>2.2.8.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.kafka</groupId>
@@ -105,6 +105,11 @@
 
         <!--third party-->
         <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1.1-jre</version>
+        </dependency>
+        <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>joor</artifactId>
             <version>0.9.12</version>
@@ -117,7 +122,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.4</version>
+            <version>1.18.16</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -133,7 +138,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.1.8.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -145,13 +149,12 @@
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka-test</artifactId>
-            <version>2.2.8.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.12.1</version>
+            <version>1.16.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
